@@ -1,0 +1,200 @@
+﻿<Window x:Class="LogAnalyzerV2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="35" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0">
+            <Menu DockPanel.Dock="Top" Height="25">
+                <MenuItem Header="Other Tools">
+                    <MenuItem Header="File Transfer Result" />
+                    <MenuItem Header="FTP Issued NEs" />
+                    <MenuItem Header="Calculate NE FTP Duration" />
+                    <MenuItem Header="Comma Counter" />
+                    <Separator />
+                    <MenuItem Header="_Exit" />
+                </MenuItem>
+            </Menu>
+            <TextBox AcceptsReturn="True" />
+        </DockPanel>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="VAF Sessions">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="21" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="cmbVSVAFServers" IsEditable="True" IsReadOnly="True" Text="--- Select VAF Server ---" Grid.Column="0" Width="Auto" Height="25" SelectionChanged="CmbVSVAFServers_SelectionChanged" DropDownClosed="cmbVSVAFServers_DropDownClosed"/>
+                        <ComboBox x:Name="cmbVSVAFAgents" IsEditable="True" IsReadOnly="True" Text="--- Select VAF Agent ---" Grid.Column="1" Width="Auto" Height="25" SelectionChanged="CmbVSVAFAgents_SelectionChanged" DropDownClosed="cmbVSVAFAgents_DropDownClosed" />
+                    </Grid>
+
+                    <dxg:GridControl x:Name="grdSessionReport" AutoExpandAllGroups="True" Grid.Row="2">
+                        <dxg:GridControl.View>
+                            <dxg:TableView ShowAutoFilterRow="True" ShowFilterPanelMode="ShowAlways" AllowEditing="False" AutoWidth="True" BestFitMode="AllRows" ShowCriteriaInAutoFilterRow="False" ShowSearchPanelMode="Never" BestFitArea="Header"/>
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn FieldName="Source" BestFitArea="Header"/>
+                        <dxg:GridColumn FieldName="Date" BestFitArea="Header">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:DateEditSettings/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="StartTime" BestFitArea="Header">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:TextEditSettings MaskUseAsDisplayFormat="True" Mask="G"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="StopTime" BestFitArea="Header">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:TextEditSettings MaskUseAsDisplayFormat="True" Mask="G"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Duration" BestFitArea="Header"/>
+                        <dxg:GridColumn FieldName="SessionNo" BestFitArea="Header">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:TextEditSettings HorizontalContentAlignment="Left"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                    </dxg:GridControl>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Collection Statuses">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="cmbCSVAFServers" IsEditable="True" IsReadOnly="True" Text="--- Select VAF Server ---" Grid.Column="0" Width="Auto" Height="25" SelectionChanged="CmbCSVAFServers_SelectionChanged" DropDownClosed="cmbCSVAFServers_DropDownClosed"/>
+                        <ComboBox x:Name="cmbCSVAFAgents" IsEditable="True" IsReadOnly="True" Text="--- Select VAF Agent ---" Grid.Column="1" Width="Auto" Height="25" SelectionChanged="CmbCSVAFAgents_SelectionChanged" DropDownClosed="cmbCSVAFAgents_DropDownClosed"/>
+                        <ComboBox x:Name="cmbCSVAFSessions" IsEditable="True" IsReadOnly="True" Text="--- Select Server Session ---" Grid.Column="2" Width="Auto" Height="25" SelectionChanged="CmbCSVAFSessions_SelectionChanged" DropDownClosed="cmbCSVAFSessions_DropDownClosed"/>
+                    </Grid>
+
+                    <dxg:GridControl x:Name="grdScheduledjobsReport" Grid.Row="2" Grid.ColumnSpan="2">
+                        <dxg:GridControl.View>
+                            <dxg:TableView ShowAutoFilterRow="True" ShowFilterPanelMode="ShowAlways" AllowEditing="False" AutoWidth="True" BestFitMode="Default" ShowCriteriaInAutoFilterRow="False" ShowSearchPanelMode="Never" GroupSummaryDisplayMode="AlignByColumns" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn FieldName="Source"/>
+                        <dxg:GridColumn FieldName="Ip"/>
+                        <dxg:GridColumn FieldName="CollectionType"/>
+                        <dxg:GridColumn FieldName="Date">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:DateEditSettings Mask="d" MaskUseAsDisplayFormat="True"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Started">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:DateEditSettings Mask="G" MaskUseAsDisplayFormat="True" />
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Completed">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:DateEditSettings Mask="G" MaskUseAsDisplayFormat="True"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Duration"/>
+                    </dxg:GridControl>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Daily Collection Result">
+                <Grid>
+                    <dxg:GridControl x:Name="grdDailyColReports">
+                        <dxg:GridControl.View>
+                            <dxg:TableView AutoWidth="False"/>
+                        </dxg:GridControl.View>
+                    </dxg:GridControl>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Agent File Transfer">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="cmbAgentFileTransfer" IsEditable="True" IsReadOnly="True" Text="--- Select VAF Agent ---" Grid.Column="0" Width="Auto" Height="25" DropDownClosed="cmbAgentFileTransfer_DropDownClosed" SelectionChanged="cmbAgentFileTransfer_SelectionChanged"/>
+                    </Grid>
+
+                    <dxg:GridControl x:Name="grdAgentFileTransfer" Grid.Row="2">
+                        <dxg:GridControl.View>
+                            <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns" ShowFixedTotalSummary="True" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn FieldName="TransferType"/>
+                        <dxg:GridColumn FieldName="FileName"/>
+                        <dxg:GridColumn FieldName="Date"/>
+                        <dxg:GridColumn FieldName="Started">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:DateEditSettings MaskUseAsDisplayFormat="True" Mask="G"/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Completed">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:TextEditSettings/>
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="Duration"/>
+                        <dxg:GridColumn FieldName="SendItem"/>
+                    </dxg:GridControl>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button x:Name="btnUploadFiles" Grid.Row="2" Content="Analyze" Click="btnUploadFiles_Click" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" />
+        <ProgressBar x:Name="progressBar" Grid.Row="2" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,5,5,5" />
+        <Label x:Name="lblPercentage" Grid.Row="2" Width="150" Height="22" Margin="220,8,372,7" HorizontalAlignment="Left" />
+        <CheckBox x:Name="IsFileTransferEnabled" Grid.Row="2" FlowDirection="RightToLeft"  Margin="500,8,160,7" Height="25">
+            <TextBlock FlowDirection="LeftToRight" Text="Include File Transfer:" />
+        </CheckBox>
+    </Grid>
+</Window>
