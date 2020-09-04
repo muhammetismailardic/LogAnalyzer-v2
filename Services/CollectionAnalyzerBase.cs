@@ -13,7 +13,7 @@ namespace LogAnalyzerV2.Services
 {
     internal class CollectionAnalyzerBase
     {
-        // Insert Transfer files.
+        // Insert Transfer files......
         public List<TransferItems> transferItems;
         public bool IsFileTransferEnabled = false;
 
