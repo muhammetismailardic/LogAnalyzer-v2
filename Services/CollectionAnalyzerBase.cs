@@ -19,6 +19,8 @@ namespace LogAnalyzerV2.Services
 
         // Insert all the logs based on type into one big list.
         public List<string> logList;
+        public List<string> NEList;
+        public List<string> RmonData;
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
 
@@ -31,6 +33,54 @@ namespace LogAnalyzerV2.Services
             int result = 0;
             int counter = 0;
 
+            if (logList != null && logList.Count != 0)
+            {
+                AnalyzeLog(max, result, counter, e, bw);
+            }
+            else if (NEList != null && NEList.Count != 0 || RmonData != null && RmonData.Count != 0)
+            {
+                AnalyzeOppositeInfo(max, result, counter, e, bw);
+            }
+        }
+
+        private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+
+            foreach (string line in NEList)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    if (counter % 42 == 0)
+                    {
+                        result++;
+                        bw.ReportProgress(progressPercentage);
+                    }
+                    e.Result = result;
+                }
+            }
+
+            foreach (var line in RmonData)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    if (counter % 42 == 0)
+                    {
+                        result++;
+                        bw.ReportProgress(progressPercentage);
+                    }
+                    e.Result = result;
+                }
+            }
+        }
+
+        private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
             foreach (string line in logList)
             {
                 if (!string.IsNullOrWhiteSpace(line))
@@ -57,9 +107,10 @@ namespace LogAnalyzerV2.Services
                 }
             }
         }
+
         private void VAFServerCollection(string line)
         {
-            if (!line.Contains("An agent service started to work during the job is in progress."))
+            if (!line.Contains("UNMS VAF Module Service,An agent service stopped and started again"))
             {
                 if (line.Contains("config file"))
                 {
@@ -189,7 +240,7 @@ namespace LogAnalyzerV2.Services
                 switch (items)
                 {
                     case "Historical PMON/RMON":
-                        colType = "Historical Data Collection";
+                        colType = "Historical PMON/RMON Data Collection";
                         break;
 
                     default:
@@ -212,7 +263,7 @@ namespace LogAnalyzerV2.Services
                 switch (items)
                 {
                     case "Historical PMON/RMON":
-                        colType = "Historical Data Collection";
+                        colType = "Historical PMON/RMON Data Collection";
                         break;
 
                     default:

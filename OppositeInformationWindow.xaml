@@ -1,0 +1,29 @@
+﻿<Window x:Class="LogAnalyzerV2.OppositeInformationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+        mc:Ignorable="d"
+        Title="OppositeInformationWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="35" />
+        </Grid.RowDefinitions>
+
+        <dxg:GridControl x:Name="grdAgentFileTransfer" Grid.Row="0">
+            <dxg:GridControl.View>
+                <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns" ShowFixedTotalSummary="True" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
+            </dxg:GridControl.View>
+            <dxg:GridColumn FieldName="#Status"/>
+            <dxg:GridColumn FieldName="#IP"/>
+            <dxg:GridColumn FieldName="#Slot No"/>
+            <dxg:GridColumn FieldName="#Opp IP"/>
+            <dxg:GridColumn FieldName="#Opp Slot No"/>
+            <dxg:GridColumn FieldName="#Has Rmon"/>
+        </dxg:GridControl>
+        
+        <Button x:Name="btnCheckOpposite" Grid.Row="1" Content="CheckOpposite" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" Click="btnCheckOpposite_Click" />
+    </Grid>
+</Window>

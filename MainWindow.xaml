@@ -20,6 +20,7 @@
                     <MenuItem Header="FTP Issued NEs" />
                     <MenuItem Header="Calculate NE FTP Duration" />
                     <MenuItem Header="Comma Counter" />
+                    <MenuItem Header="Opposite Information" Click="Onclick_OppositeInformation" />
                     <Separator />
                     <MenuItem Header="_Exit" />
                 </MenuItem>

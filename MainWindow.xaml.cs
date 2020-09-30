@@ -25,13 +25,14 @@ namespace LogAnalyzerV2
     public partial class MainWindow : Window
     {
         private BGWorker bgWorker;
+        OppositeInformationWindow oppositeInformation;
         private List<string> cmbSessionList;
         private string serviceIp;
 
         public MainWindow()
         {
             InitializeComponent();
-            bgWorker = new BGWorker(this);
+            bgWorker = new BGWorker(this, oppositeInformation);
         }
         private void btnUploadFiles_Click(object sender, RoutedEventArgs e)
         {
@@ -56,7 +57,7 @@ namespace LogAnalyzerV2
 
 
             // Deletes previous result from memory
-            
+
             bgWorker.logList = new List<string>();
             bgWorker.scheduledJobsList = new List<CollectionItem>();
             bgWorker.ServerAgentTable = new List<ServerAgentCollection>();
@@ -213,7 +214,7 @@ namespace LogAnalyzerV2
         private void CmbVSVAFServers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleVsServers = !cmb.IsDropDownOpen;
+            handleVsServers = cmb.IsDropDownOpen;
             //HandleVsServers();
         }
 
@@ -268,7 +269,7 @@ namespace LogAnalyzerV2
         private void CmbVSVAFAgents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleVsAgents = !cmb.IsDropDownOpen;
+            handleVsAgents = cmb.IsDropDownOpen;
             HandleVsAgents();
         }
         private void HandleVsAgents()
@@ -316,7 +317,7 @@ namespace LogAnalyzerV2
         private void CmbCSVAFServers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleCsServers = !cmb.IsDropDownOpen;
+            handleCsServers = cmb.IsDropDownOpen;
             HandleCsServers();
         }
         private void HandleCsServers()
@@ -399,7 +400,7 @@ namespace LogAnalyzerV2
         private void CmbCSVAFAgents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleCsAgents = !cmb.IsDropDownOpen;
+            handleCsAgents = cmb.IsDropDownOpen;
             HandleCsAgents();
         }
         private void HandleCsAgents()
@@ -460,10 +461,10 @@ namespace LogAnalyzerV2
                 serviceIp = selectedVAFAgent;
             }
 
-            else
-            {
-                MessageBox.Show("Please select Agent first.");
-            }
+            //else
+            //{
+            //    MessageBox.Show("Please select Agent first.");
+            //}
         }
 
         private bool handleCsSession = true;
@@ -475,7 +476,7 @@ namespace LogAnalyzerV2
         private void CmbCSVAFSessions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleCsSession = !cmb.IsDropDownOpen;
+            handleCsSession = cmb.IsDropDownOpen;
             HandleCsSessions();
         }
         private void HandleCsSessions()
@@ -580,7 +581,7 @@ namespace LogAnalyzerV2
         private void cmbAgentFileTransfer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cmb = sender as ComboBox;
-            handleFileTransfer = !cmb.IsDropDownOpen;
+            handleFileTransfer = cmb.IsDropDownOpen;
             HandleFileTransfer();
         }
         private void HandleFileTransfer()
@@ -599,12 +600,23 @@ namespace LogAnalyzerV2
 
             if (selectedVAFAgent != null)
             {
-                var transfersByAgent = bgWorker.transferItems.Where(ıp => ıp.Ip == selectedVAFAgent).ToList();
-
+                List<TransferItems> transfersByAgent;
+                if (bgWorker.transferItems != null)
+                {
+                    transfersByAgent = bgWorker.transferItems.Where(ıp => ıp.Ip == selectedVAFAgent).ToList();
+                }
+                else { transfersByAgent = null; }
+                
                 grdAgentFileTransfer.ItemsSource = transfersByAgent;
             }
         }
 
         #endregion
+
+        private void Onclick_OppositeInformation(object sender, RoutedEventArgs e)
+        {
+            OppositeInformationWindow oppWin = new OppositeInformationWindow();
+            oppWin.Show();
+        }
     }
 }

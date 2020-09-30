@@ -11,10 +11,12 @@ namespace LogAnalyzerV2.Services
     {
         public BackgroundWorker worker;
         private MainWindow _mainWindow;
+        private OppositeInformationWindow _oppositeInformationWindow;
 
-        public BGWorker(MainWindow mainWindow)
+        public BGWorker(MainWindow mainWindow, OppositeInformationWindow oppositeInformationWindow)
         {
             _mainWindow = mainWindow;
+            _oppositeInformationWindow = oppositeInformationWindow;
 
             worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
