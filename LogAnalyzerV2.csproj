@@ -61,7 +61,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DevExpress.Data.v19.2, Version=19.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
@@ -97,6 +97,7 @@
     <Compile Include="Models\CollectionItem.cs" />
     <Compile Include="Models\CollectionSummary.cs" />
     <Compile Include="Models\HelperClasses\HelperExpend.cs" />
+    <Compile Include="Models\MissingOpposite.cs" />
     <Compile Include="Models\ServerAgentCollection.cs" />
     <Compile Include="Models\ServiceSession.cs" />
     <Compile Include="Models\TransferItems.cs" />

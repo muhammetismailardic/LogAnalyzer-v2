@@ -31,6 +31,12 @@ namespace LogAnalyzerV2
 
         private void btnCheckOpposite_Click(object sender, RoutedEventArgs e)
         {
+            if(bgWorker.scheduledJobsList != null)
+            {
+                // Cleaning  the list before proceed.
+                bgWorker.scheduledJobsList.Clear();
+            }
+            
             bgWorker.NEList = new List<string>();
             bgWorker.RmonData = new List<string>();
 
@@ -53,11 +59,11 @@ namespace LogAnalyzerV2
                 {
                     var list = File.ReadAllLines(path);
                     count += list.Count();
-                    if (dialog.FileName.Contains("NEList"))
+                    if (path.Contains("NEList"))
                     {
                         bgWorker.NEList.AddRange(list.ToList());
                     }
-                    else if (dialog.FileName.Contains("rmon"))
+                    else if (path.Contains("rmon"))
                     {
                         bgWorker.RmonData.AddRange(list.ToList());
                     }

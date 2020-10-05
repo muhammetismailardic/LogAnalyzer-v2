@@ -11,19 +11,21 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
-
-        <dxg:GridControl x:Name="grdAgentFileTransfer" Grid.Row="0">
+        <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="0">
             <dxg:GridControl.View>
-                <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns" ShowFixedTotalSummary="True" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
+                <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns"/>
             </dxg:GridControl.View>
-            <dxg:GridColumn FieldName="#Status"/>
-            <dxg:GridColumn FieldName="#IP"/>
-            <dxg:GridColumn FieldName="#Slot No"/>
-            <dxg:GridColumn FieldName="#Opp IP"/>
-            <dxg:GridColumn FieldName="#Opp Slot No"/>
-            <dxg:GridColumn FieldName="#Has Rmon"/>
+            <dxg:GridColumn FieldName="Status"/>
+            <dxg:GridColumn FieldName="IP"/>
+            <dxg:GridColumn FieldName="SlotNo"/>
+            <dxg:GridColumn FieldName="OppIP"/>
+            <dxg:GridColumn FieldName="OppSlotNo"/>
+            <dxg:GridColumn FieldName="HasRmon"/>
+            <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>
         
         <Button x:Name="btnCheckOpposite" Grid.Row="1" Content="CheckOpposite" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" Click="btnCheckOpposite_Click" />
+        <ProgressBar x:Name="MissingOppProgressBar" Grid.Row="1" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,5,5,5" />
+        <Label x:Name="lblMissingOppPercentage" Grid.Row="1" Width="150" Height="22" Margin="220,8,372,7" HorizontalAlignment="Left" />
     </Grid>
 </Window>

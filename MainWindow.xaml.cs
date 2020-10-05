@@ -36,6 +36,11 @@ namespace LogAnalyzerV2
         }
         private void btnUploadFiles_Click(object sender, RoutedEventArgs e)
         {
+            if (bgWorker.missingOpposites != null)
+            {
+                // Cleaning  the list before proceed.
+                bgWorker.missingOpposites.Clear();
+            }
             uploadFiles();
         }
 
@@ -606,7 +611,7 @@ namespace LogAnalyzerV2
                     transfersByAgent = bgWorker.transferItems.Where(ıp => ıp.Ip == selectedVAFAgent).ToList();
                 }
                 else { transfersByAgent = null; }
-                
+
                 grdAgentFileTransfer.ItemsSource = transfersByAgent;
             }
         }

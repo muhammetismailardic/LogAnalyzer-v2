@@ -23,6 +23,7 @@ namespace LogAnalyzerV2.Services
         public List<string> RmonData;
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
+        public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
 
         private string[] properLine;
         private string collectionType, items;
@@ -37,7 +38,7 @@ namespace LogAnalyzerV2.Services
             {
                 AnalyzeLog(max, result, counter, e, bw);
             }
-            else if (NEList != null && NEList.Count != 0 || RmonData != null && RmonData.Count != 0)
+            else if (NEList != null && NEList.Count != 0)//|| RmonData != null && RmonData.Count != 0)
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
@@ -45,6 +46,12 @@ namespace LogAnalyzerV2.Services
 
         private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
+            List<int> oppLocations = new List<int>();
+            missingOpposites = new List<MissingOpposite>();
+            int primaryAddLoc = 3;
+
+            List<string> oppIps = new List<string>();
+            string primaryAdd = "";
 
             foreach (string line in NEList)
             {
@@ -53,30 +60,78 @@ namespace LogAnalyzerV2.Services
                     counter++;
                     int progressPercentage = Convert.ToInt32((counter * 100) / max);
 
-                    if (counter % 42 == 0)
-                    {
-                        result++;
-                        bw.ReportProgress(progressPercentage);
-                    }
+                    //TODO: Here will be checked!
+                    result++;
+                    bw.ReportProgress(progressPercentage);
                     e.Result = result;
+
+                    // TODO // Define opp Ip Loc
+                    var items = line.Split(',');
+                    if (NEList.IndexOf(line) == 1)
+                    {
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            //Console.WriteLine("Index: " + loc++ + " Item Name: " + items[i].ToString() + "\n");
+                            if (items[i].Contains("Opposite NE Primary Address-"))
+                            {
+                                oppLocations.Add(loc);
+                            }
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs
+                    if (NEList.IndexOf(line) != 0 && NEList.IndexOf(line) != 1)
+                    {
+                        if (primaryAddLoc != -1)
+                            primaryAdd = items[primaryAddLoc].ToString();
+
+                        foreach (var index in oppLocations)
+                        {
+                            if (!String.IsNullOrEmpty(items[index].ToString()))
+                            {
+                                var currrentIndexLoc = oppLocations.IndexOf(index) + 1;
+                                oppIps.Add((items[index] + "," + " Modem " + currrentIndexLoc));
+                            }
+                        }
+
+                        // Here add the founded items to list
+                        // This can be simplified
+                        foreach (var item in oppIps)
+                        {
+                            var missingOpp = new MissingOpposite()
+                            {
+                                Status = "No Data",
+                                IP = primaryAdd,
+                                SlotNo = item.Split(',')[1].ToString(),
+                                OppIP = item.Split(',')[0].ToString(),
+                                OppSlotNo = ""
+                            };
+                            missingOpposites.Add(missingOpp);
+                        }
+                    }
                 }
+                primaryAdd = "";
+                oppIps.Clear();
             }
 
-            foreach (var line in RmonData)
+            foreach (string line in RmonData)
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     counter++;
                     int progressPercentage = Convert.ToInt32((counter * 100) / max);
 
-                    if (counter % 42 == 0)
-                    {
-                        result++;
-                        bw.ReportProgress(progressPercentage);
-                    }
+                    //TODO: Here will be checked.
+                    result++;
+                    bw.ReportProgress(progressPercentage);
                     e.Result = result;
                 }
+
+
             }
+
         }
 
         private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
@@ -283,7 +338,6 @@ namespace LogAnalyzerV2.Services
 
             if (IsFileTransferEnabled == true) { FileTransferService(line); }
         }
-
         private void FileTransferService(string line)
         {
             // For file transfer 
@@ -489,7 +543,6 @@ namespace LogAnalyzerV2.Services
                 }
             }
         }
-
         private void ExecuteForServer(string line, string colType)
         {
             if (line.Contains("started") == true
@@ -503,7 +556,6 @@ namespace LogAnalyzerV2.Services
                 UpdateCollection(colType, line);
             }
         }
-
         private void ExecuteForAgent(string line, string colType)
         {
             if (line.Contains("Starting") == true || line.Contains("Historical PMON/RMON Data Collect") == true
@@ -516,7 +568,6 @@ namespace LogAnalyzerV2.Services
                 UpdateCollection(colType, line);
             }
         }
-
         private void CreateCollection(string collectionType, string line)
         {
             string logType;
@@ -555,7 +606,6 @@ namespace LogAnalyzerV2.Services
                 Console.WriteLine("Opps!, \n Someting went wrong!");
             }
         }
-
         private void UpdateCollection(string collectionType, string line)
         {
             // Initialize local variables..
