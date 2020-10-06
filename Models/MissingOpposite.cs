@@ -10,9 +10,9 @@ namespace LogAnalyzerV2.Models
     {
         public string Status { get; set; }
         public string IP { get; set; }
-        public string SlotNo { get; set; }
+        public string Port { get; set; }
         public string OppIP { get; set; }
-        public string OppSlotNo { get; set; }
+        public string OppPort { get; set; }
         public bool HasRmon { get; set; } = false;
         public bool IsMatch { get; set; } = false;
     }

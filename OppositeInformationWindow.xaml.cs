@@ -31,17 +31,17 @@ namespace LogAnalyzerV2
 
         private void btnCheckOpposite_Click(object sender, RoutedEventArgs e)
         {
-            if(bgWorker.scheduledJobsList != null)
+            if (bgWorker.scheduledJobsList != null)
             {
                 // Cleaning  the list before proceed.
                 bgWorker.scheduledJobsList.Clear();
             }
-            
+
             bgWorker.NEList = new List<string>();
             bgWorker.RmonData = new List<string>();
 
             int OppProgressBarItemCount = 0;
-           
+
             Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "CSV | *.csv;", // file types, that will be allowed to upload
@@ -57,15 +57,24 @@ namespace LogAnalyzerV2
                 // Read the files
                 foreach (string path in dialog.FileNames)
                 {
-                    var list = File.ReadAllLines(path);
-                    count += list.Count();
-                    if (path.Contains("NEList"))
+                    var fi = new FileInfo(path);
+                    if (bgWorker.IsFileLocked(fi) == false)
                     {
-                        bgWorker.NEList.AddRange(list.ToList());
+                        var list = File.ReadAllLines(path);
+                        count += list.Count();
+                        if (path.Contains("NEList"))
+                        {
+                            bgWorker.NEList.AddRange(list.ToList());
+                        }
+                        else if (path.Contains("rmon"))
+                        {
+                            bgWorker.RmonData.AddRange(list.ToList());
+                        }
                     }
-                    else if (path.Contains("rmon"))
+                    else
                     {
-                        bgWorker.RmonData.AddRange(list.ToList());
+                        MessageBox.Show("Can not access the one of file! \n It is used by an other proceess.");
+                        break;
                     }
                 }
                 OppProgressBarItemCount = count;

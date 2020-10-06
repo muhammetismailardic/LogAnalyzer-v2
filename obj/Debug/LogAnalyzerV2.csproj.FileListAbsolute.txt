@@ -162,3 +162,4 @@ C:\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.application
 C:\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.CopyComplete
 C:\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.exe
 C:\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.pdb
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csprojAssemblyReference.cache

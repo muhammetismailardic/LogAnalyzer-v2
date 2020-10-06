@@ -17,9 +17,9 @@
             </dxg:GridControl.View>
             <dxg:GridColumn FieldName="Status"/>
             <dxg:GridColumn FieldName="IP"/>
-            <dxg:GridColumn FieldName="SlotNo"/>
+            <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppIP"/>
-            <dxg:GridColumn FieldName="OppSlotNo"/>
+            <dxg:GridColumn FieldName="OppPort"/>
             <dxg:GridColumn FieldName="HasRmon"/>
             <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>

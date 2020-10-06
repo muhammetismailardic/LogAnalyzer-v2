@@ -49,7 +49,7 @@ namespace LogAnalyzerV2.Services
         {
             if (scheduledJobsList != null && scheduledJobsList.Count != 0)
             {
-                //_mainWindow.progressBar.Value = 0;
+                _mainWindow.progressBar.Value = 0;
 
                 var VAFServices = scheduledJobsList.Where(s => s.Source.Contains("VAF Service")).Select(s => s.Ip).Distinct();
                 var VAFAgents = scheduledJobsList.Where(s => s.Source.Contains("VAF Agent")).Select(s => s.Ip).Distinct();

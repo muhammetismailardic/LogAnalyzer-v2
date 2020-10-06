@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace LogAnalyzerV2.Services
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
         public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
+        List<RmonItems> RmonItems = new List<RmonItems>();
 
         private string[] properLine;
         private string collectionType, items;
@@ -38,7 +40,7 @@ namespace LogAnalyzerV2.Services
             {
                 AnalyzeLog(max, result, counter, e, bw);
             }
-            else if (NEList != null && NEList.Count != 0)//|| RmonData != null && RmonData.Count != 0)
+            else if (NEList != null && NEList.Count != 0) //&& RmonData != null && RmonData.Count != 0)
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
@@ -46,12 +48,138 @@ namespace LogAnalyzerV2.Services
 
         private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
-            List<int> oppLocations = new List<int>();
             missingOpposites = new List<MissingOpposite>();
-            int primaryAddLoc = 3;
 
-            List<string> oppIps = new List<string>();
+            AnalyzeOppositeInfoNEList(max, result, counter, e, bw);
+            //AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+
+            //foreach (var item in missingOpposites)
+            //{
+            //    RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port);
+            //}
+        }
+
+        private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            List<string> RmonIndexLoc = new List<string>();
+            List<string> RmonOppIps = new List<string>();
+
+
+            // Analyze Rmon data to find index and related data for further process
+            // When this loop over RmonItems list will be filled.
+            foreach (string line in RmonData)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    result++;
+                    bw.ReportProgress(progressPercentage);
+                    e.Result = result;
+
+                    // Find Index
+                    var items = line.Split(',');
+
+                    if (RmonData.IndexOf(line) == 0)
+                    {
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            if (items[i].Equals("IP Address"))
+                            {
+                                RmonIndexLoc.Add("IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Port"))
+                            {
+                                RmonIndexLoc.Add("Port," + loc);
+                            }
+
+                            if (items[i].Equals("Opposite NE IP Address"))
+                            {
+                                RmonIndexLoc.Add("Opposite NE IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Opposite Port"))
+                            {
+                                RmonIndexLoc.Add("Opposite Port," + loc);
+                            }
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs using Index
+                    if (RmonData.IndexOf(line) != 0)
+                    {
+                        // Define Location of Items
+                        foreach (var index in RmonIndexLoc)
+                        {
+                            var itemName = index.Split(',')[0];
+
+                            if (!String.IsNullOrEmpty(itemName))
+                            {
+                                if (itemName == "IP Address")
+                                {
+                                    RmonOppIps.Add("IP Address," + items[(int.Parse(index.Split(',')[1]))]);
+                                }
+
+                                else if (itemName == "Port")
+                                {
+                                    RmonOppIps.Add("Port," + items[(int.Parse(index.Split(',')[1]))]);
+                                }
+
+                                else if (itemName == "Opposite NE IP Address")
+                                {
+                                    RmonOppIps.Add("Opposite NE IP Address," + items[(int.Parse(index.Split(',')[1]))]);
+                                }
+
+                                else if (itemName == "Opposite Port")
+                                {
+                                    RmonOppIps.Add("Opposite Port," + items[(int.Parse(index.Split(',')[1]))]);
+                                }
+                            }
+                        }
+
+                        // Insert to List
+                        var rmonItems = new RmonItems();
+                        foreach (var item in RmonOppIps)
+                        {
+                            if (item.Split(',')[0] == "IP Address")
+                            {
+                                rmonItems.IP = item.Split(',')[1];
+                            }
+
+                            else if (item.Split(',')[0] == "Port")
+                            {
+                                rmonItems.Port = item.Split(',')[1];
+                            }
+
+                            else if (item.Split(',')[0] == "Opposite NE IP Address")
+                            {
+                                rmonItems.OppIP = item.Split(',')[1];
+                            }
+
+                            else if (item.Split(',')[0] == "Opposite Port")
+                            {
+                                rmonItems.OppPort = item.Split(',')[1];
+                            }
+                        }
+
+                        //Adding items to list.
+                        RmonItems.Add(rmonItems);
+                    }
+                }
+                RmonOppIps.Clear();
+            }
+        }
+
+        private void AnalyzeOppositeInfoNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            List<string> NeListOppIps = new List<string>();
             string primaryAdd = "";
+            List<int> NeListOppLoc = new List<int>();
+            int primaryAddLoc = 3;
 
             foreach (string line in NEList)
             {
@@ -75,7 +203,7 @@ namespace LogAnalyzerV2.Services
                             //Console.WriteLine("Index: " + loc++ + " Item Name: " + items[i].ToString() + "\n");
                             if (items[i].Contains("Opposite NE Primary Address-"))
                             {
-                                oppLocations.Add(loc);
+                                NeListOppLoc.Add(loc);
                             }
                             loc++;
                         }
@@ -87,51 +215,34 @@ namespace LogAnalyzerV2.Services
                         if (primaryAddLoc != -1)
                             primaryAdd = items[primaryAddLoc].ToString();
 
-                        foreach (var index in oppLocations)
+                        foreach (var index in NeListOppLoc)
                         {
                             if (!String.IsNullOrEmpty(items[index].ToString()))
                             {
-                                var currrentIndexLoc = oppLocations.IndexOf(index) + 1;
-                                oppIps.Add((items[index] + "," + " Modem " + currrentIndexLoc));
+                                var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
+                                NeListOppIps.Add((items[index] + "," + " MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
                             }
                         }
 
                         // Here add the founded items to list
                         // This can be simplified
-                        foreach (var item in oppIps)
+                        foreach (var item in NeListOppIps)
                         {
                             var missingOpp = new MissingOpposite()
                             {
                                 Status = "No Data",
                                 IP = primaryAdd,
-                                SlotNo = item.Split(',')[1].ToString(),
+                                Port = item.Split(',')[1].ToString(),
                                 OppIP = item.Split(',')[0].ToString(),
-                                OppSlotNo = ""
+                                OppPort = ""
                             };
                             missingOpposites.Add(missingOpp);
                         }
                     }
                 }
                 primaryAdd = "";
-                oppIps.Clear();
+                NeListOppIps.Clear();
             }
-
-            foreach (string line in RmonData)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    counter++;
-                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                    //TODO: Here will be checked.
-                    result++;
-                    bw.ReportProgress(progressPercentage);
-                    e.Result = result;
-                }
-
-
-            }
-
         }
 
         private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
@@ -902,6 +1013,28 @@ namespace LogAnalyzerV2.Services
             var WordsArray = string.Join(" ", line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
                                                                        .Select(i => i.Trim())).Split(',');
             return WordsArray;
+        }
+
+        public virtual bool IsFileLocked(FileInfo file)
+        {
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+
+            //file is not locked
+            return false;
         }
         #endregion
     }
