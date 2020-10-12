@@ -1,4 +1,6 @@
-﻿using LogAnalyzerV2.Models;
+﻿using DevExpress.Data.Filtering.Helpers;
+using DevExpress.Utils.Filtering.Internal;
+using LogAnalyzerV2.Models;
 using LogAnalyzerV2.Models.HelperClasses;
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LogAnalyzerV2.Services
@@ -51,12 +54,29 @@ namespace LogAnalyzerV2.Services
             missingOpposites = new List<MissingOpposite>();
 
             AnalyzeOppositeInfoNEList(max, result, counter, e, bw);
-            //AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
 
-            //foreach (var item in missingOpposites)
-            //{
-            //    RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port);
-            //}
+            foreach (var item in missingOpposites)
+            {
+                var selectedOppPort = RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port).Select(a => new { a.OppIP, a.OppPort }).SingleOrDefault();
+
+                //Update the selected list if exist.
+                if (selectedOppPort != null)
+                {
+                    if (selectedOppPort.OppIP == item.OppIP)
+                    {
+                        item.IsMatch = true;
+                    }
+                    item.OppIP = selectedOppPort.OppIP;
+                    item.OppPort = selectedOppPort.OppPort;
+                    item.HasRmon = true;
+
+                    if (item.IsMatch == true && item.HasRmon == true)
+                    {
+                        item.Status = "Ok";
+                    }
+                }
+            }
         }
 
         private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
@@ -220,7 +240,7 @@ namespace LogAnalyzerV2.Services
                             if (!String.IsNullOrEmpty(items[index].ToString()))
                             {
                                 var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
-                                NeListOppIps.Add((items[index] + "," + " MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
+                                NeListOppIps.Add((items[index] + "," + "MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
                             }
                         }
 
@@ -231,7 +251,7 @@ namespace LogAnalyzerV2.Services
                             var missingOpp = new MissingOpposite()
                             {
                                 Status = "No Data",
-                                IP = primaryAdd,
+                                IP = Regex.Replace(primaryAdd, "0*([0-9]+)", "${1}"),
                                 Port = item.Split(',')[1].ToString(),
                                 OppIP = item.Split(',')[0].ToString(),
                                 OppPort = ""
