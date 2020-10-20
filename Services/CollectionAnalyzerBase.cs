@@ -58,7 +58,7 @@ namespace LogAnalyzerV2.Services
 
             foreach (var item in missingOpposites)
             {
-                var selectedOppPort = RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port).Select(a => new { a.OppIP, a.OppPort }).SingleOrDefault();
+                var selectedOppPort = RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember}).SingleOrDefault();
 
                 //Update the selected list if exist.
                 if (selectedOppPort != null)
@@ -70,6 +70,7 @@ namespace LogAnalyzerV2.Services
                     item.OppIP = selectedOppPort.OppIP;
                     item.OppPort = selectedOppPort.OppPort;
                     item.HasRmon = true;
+                    item.GroupMember = selectedOppPort.GroupMember;
 
                     if (item.IsMatch == true && item.HasRmon == true)
                     {
@@ -108,22 +109,32 @@ namespace LogAnalyzerV2.Services
                         {
                             if (items[i].Equals("IP Address"))
                             {
-                                RmonIndexLoc.Add("IP Address," + loc);
+                                //RmonIndexLoc.Add("IP Address," + loc);
+                                RmonOppIps.Add("IP Address," + loc);
                             }
 
                             if (items[i].Equals("Port"))
                             {
-                                RmonIndexLoc.Add("Port," + loc);
+                                //RmonIndexLoc.Add("Port," + loc);
+                                RmonOppIps.Add("Port," + loc);
                             }
 
                             if (items[i].Equals("Opposite NE IP Address"))
                             {
-                                RmonIndexLoc.Add("Opposite NE IP Address," + loc);
+                                //RmonIndexLoc.Add("Opposite NE IP Address," + loc);
+                                RmonOppIps.Add("Opposite NE IP Address," + loc);
                             }
 
                             if (items[i].Equals("Opposite Port"))
                             {
-                                RmonIndexLoc.Add("Opposite Port," + loc);
+                                //RmonIndexLoc.Add("Opposite Port," + loc);
+                                RmonOppIps.Add("Opposite Port," + loc);
+                            }
+
+                            if (items[i].Equals("Group Member"))
+                            {
+                                //RmonIndexLoc.Add("Group Member," + loc);
+                                RmonOppIps.Add("Group Member," + loc);
                             }
                             loc++;
                         }
@@ -133,33 +144,38 @@ namespace LogAnalyzerV2.Services
                     if (RmonData.IndexOf(line) != 0)
                     {
                         // Define Location of Items
-                        foreach (var index in RmonIndexLoc)
-                        {
-                            var itemName = index.Split(',')[0];
+                        //foreach (var index in RmonIndexLoc)
+                        //{
+                        //    var itemName = index.Split(',')[0];
 
-                            if (!String.IsNullOrEmpty(itemName))
-                            {
-                                if (itemName == "IP Address")
-                                {
-                                    RmonOppIps.Add("IP Address," + items[(int.Parse(index.Split(',')[1]))]);
-                                }
+                        //    if (!String.IsNullOrEmpty(itemName))
+                        //    {
+                        //        if (itemName == "IP Address")
+                        //        {
+                        //            RmonOppIps.Add("IP Address," + items[(int.Parse(index.Split(',')[1]))]);
+                        //        }
 
-                                else if (itemName == "Port")
-                                {
-                                    RmonOppIps.Add("Port," + items[(int.Parse(index.Split(',')[1]))]);
-                                }
+                        //        else if (itemName == "Port")
+                        //        {
+                        //            RmonOppIps.Add("Port," + items[(int.Parse(index.Split(',')[1]))]);
+                        //        }
 
-                                else if (itemName == "Opposite NE IP Address")
-                                {
-                                    RmonOppIps.Add("Opposite NE IP Address," + items[(int.Parse(index.Split(',')[1]))]);
-                                }
+                        //        else if (itemName == "Opposite NE IP Address")
+                        //        {
+                        //            RmonOppIps.Add("Opposite NE IP Address," + items[(int.Parse(index.Split(',')[1]))]);
+                        //        }
 
-                                else if (itemName == "Opposite Port")
-                                {
-                                    RmonOppIps.Add("Opposite Port," + items[(int.Parse(index.Split(',')[1]))]);
-                                }
-                            }
-                        }
+                        //        else if (itemName == "Opposite Port")
+                        //        {
+                        //            RmonOppIps.Add("Opposite Port," + items[(int.Parse(index.Split(',')[1]))]);
+                        //        }
+
+                        //        else if (itemName == "Group Member")
+                        //        {
+                        //            RmonOppIps.Add("Group Member," + items[(int.Parse(index.Split(',')[1]))]);
+                        //        }
+                        //    }
+                        //}
 
                         // Insert to List
                         var rmonItems = new RmonItems();
@@ -167,22 +183,27 @@ namespace LogAnalyzerV2.Services
                         {
                             if (item.Split(',')[0] == "IP Address")
                             {
-                                rmonItems.IP = item.Split(',')[1];
+                                rmonItems.IP = items[(int.Parse(item.Split(',')[1]))];
                             }
 
                             else if (item.Split(',')[0] == "Port")
                             {
-                                rmonItems.Port = item.Split(',')[1];
+                                rmonItems.Port = items[(int.Parse(item.Split(',')[1]))];
                             }
 
                             else if (item.Split(',')[0] == "Opposite NE IP Address")
                             {
-                                rmonItems.OppIP = item.Split(',')[1];
+                                rmonItems.OppIP = items[(int.Parse(item.Split(',')[1]))];
                             }
 
                             else if (item.Split(',')[0] == "Opposite Port")
                             {
-                                rmonItems.OppPort = item.Split(',')[1];
+                                rmonItems.OppPort = items[(int.Parse(item.Split(',')[1]))];
+                            }
+
+                            else if (item.Split(',')[0] == "Group Member")
+                            {
+                                rmonItems.GroupMember = items[(int.Parse(item.Split(',')[1]))];
                             }
                         }
 
@@ -190,7 +211,7 @@ namespace LogAnalyzerV2.Services
                         RmonItems.Add(rmonItems);
                     }
                 }
-                RmonOppIps.Clear();
+               //RmonOppIps.Clear();
             }
         }
 
@@ -240,6 +261,24 @@ namespace LogAnalyzerV2.Services
                             if (!String.IsNullOrEmpty(items[index].ToString()))
                             {
                                 var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
+
+                                if (currrentIndexLoc == 9)
+                                {
+                                    currrentIndexLoc = 11;
+                                }
+                                else if (currrentIndexLoc == 10)
+                                {
+                                    currrentIndexLoc = 12;
+                                }
+                                else if (currrentIndexLoc == 11)
+                                {
+                                    currrentIndexLoc = 13;
+                                }
+                                else if (currrentIndexLoc == 12)
+                                {
+                                    currrentIndexLoc = 14;
+                                }
+
                                 NeListOppIps.Add((items[index] + "," + "MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
                             }
                         }
@@ -254,7 +293,7 @@ namespace LogAnalyzerV2.Services
                                 IP = Regex.Replace(primaryAdd, "0*([0-9]+)", "${1}"),
                                 Port = item.Split(',')[1].ToString(),
                                 OppIP = item.Split(',')[0].ToString(),
-                                OppPort = ""
+                                OppPort = "",
                             };
                             missingOpposites.Add(missingOpp);
                         }

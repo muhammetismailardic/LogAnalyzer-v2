@@ -20,6 +20,7 @@
             <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppIP"/>
             <dxg:GridColumn FieldName="OppPort"/>
+            <dxg:GridColumn FieldName="GroupMember"/>
             <dxg:GridColumn FieldName="HasRmon"/>
             <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>
