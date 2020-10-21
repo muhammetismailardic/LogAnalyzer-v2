@@ -53,33 +53,91 @@ namespace LogAnalyzerV2.Services
         {
             missingOpposites = new List<MissingOpposite>();
 
-            AnalyzeOppositeInfoNEList(max, result, counter, e, bw);
+            AnalyzeNEList(max, result, counter, e, bw);
+            AnalyzeNEListForOpposite();
+
+
+
             AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+            UpdatingTheListWithRmonFile();
+            
+        }
+
+        private void AnalyzeNEListForOpposite()
+        {
+            List<string> IpWithOppIp = new List<string>();
+
+            
 
             foreach (var item in missingOpposites)
             {
-                var selectedOppPort = RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember}).SingleOrDefault();
+                //var test = missingOpposites.Where(x => x.IP == item.IP).Select(y=> y.Port)
 
-                //Update the selected list if exist.
-                if (selectedOppPort != null)
+                var FindIp = item.IP;
+                var findPort = item.Port;
+
+            }
+            
+            
+            
+        }
+
+        private void UpdatingTheListWithRmonFile()
+        {
+            // TODO 15 dakikalıklar için bakılacak
+            foreach (var item in missingOpposites)
+            {
+                var selectedOppPort = RmonItems.Where(x => x.IP == item.IP && x.Port == item.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember, a.Time }).ToList();
+
+                if (selectedOppPort.Count == 1)
                 {
-                    if (selectedOppPort.OppIP == item.OppIP)
-                    {
-                        item.IsMatch = true;
-                    }
-                    item.OppIP = selectedOppPort.OppIP;
-                    item.OppPort = selectedOppPort.OppPort;
-                    item.HasRmon = true;
-                    item.GroupMember = selectedOppPort.GroupMember;
+                    var theSelected = selectedOppPort.SingleOrDefault();
 
-                    if (item.IsMatch == true && item.HasRmon == true)
+                    //Update the selected list if exist.
+                    if (selectedOppPort != null)
                     {
-                        item.Status = "Ok";
+                        if (theSelected.OppIP == item.OppIP)
+                        {
+                            item.IsMatch = true;
+                        }
+                        item.OppIP = theSelected.OppIP;
+                        item.Time = theSelected.Time;
+                        item.OppPort = theSelected.OppPort;
+                        item.HasRmon = true;
+                        item.GroupMember = theSelected.GroupMember;
+
+                        if (item.IsMatch == true && item.HasRmon == true)
+                        {
+                            item.Status = "Ok";
+                        }
+                    }
+                }
+
+                else
+                {
+                    foreach (var slctPort in selectedOppPort)
+                    {
+                        if (slctPort != null)
+                        {
+                            if (slctPort.OppIP == item.OppIP)
+                            {
+                                item.IsMatch = true;
+                            }
+                            item.OppIP = slctPort.OppIP;
+                            item.Time = slctPort.Time;
+                            item.OppPort = slctPort.OppPort;
+                            item.HasRmon = true;
+                            item.GroupMember = slctPort.GroupMember;
+
+                            if (item.IsMatch == true && item.HasRmon == true)
+                            {
+                                item.Status = "Ok";
+                            }
+                        }
                     }
                 }
             }
         }
-
         private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             List<string> RmonIndexLoc = new List<string>();
@@ -214,8 +272,7 @@ namespace LogAnalyzerV2.Services
                //RmonOppIps.Clear();
             }
         }
-
-        private void AnalyzeOppositeInfoNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             List<string> NeListOppIps = new List<string>();
             string primaryAdd = "";
@@ -303,7 +360,6 @@ namespace LogAnalyzerV2.Services
                 NeListOppIps.Clear();
             }
         }
-
         private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             foreach (string line in logList)
@@ -332,7 +388,6 @@ namespace LogAnalyzerV2.Services
                 }
             }
         }
-
         private void VAFServerCollection(string line)
         {
             if (!line.Contains("UNMS VAF Module Service,An agent service stopped and started again"))

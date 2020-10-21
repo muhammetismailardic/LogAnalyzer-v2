@@ -16,6 +16,7 @@
                 <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns"/>
             </dxg:GridControl.View>
             <dxg:GridColumn FieldName="Status"/>
+            <dxg:GridColumn FieldName="Time"/>
             <dxg:GridColumn FieldName="IP"/>
             <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppIP"/>
