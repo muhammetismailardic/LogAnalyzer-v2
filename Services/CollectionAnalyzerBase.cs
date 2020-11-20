@@ -60,26 +60,24 @@ namespace LogAnalyzerV2.Services
 
             AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
             UpdatingTheListWithRmonFile();
-            
+
         }
 
         private void AnalyzeNEListForOpposite()
         {
-            List<string> IpWithOppIp = new List<string>();
+            var IpList = missingOpposites.Select(x => x.IP).Distinct();
 
-            
-
-            foreach (var item in missingOpposites)
+            foreach (var Ip in IpList)
             {
-                //var test = missingOpposites.Where(x => x.IP == item.IP).Select(y=> y.Port)
+                var findIp = missingOpposites.Where(x => x.IP == Ip).ToList();
+                var findOpps = findIp.Select(y => y.OppIP).ToList();
 
-                var FindIp = item.IP;
-                var findPort = item.Port;
+                foreach (var item in findOpps)
+                {
+                    var oppPort = missingOpposites.Where(x => x.IP == item && x.OppIP == Ip).Select(y=>y.Port);
+                }
 
             }
-            
-            
-            
         }
 
         private void UpdatingTheListWithRmonFile()
@@ -269,7 +267,7 @@ namespace LogAnalyzerV2.Services
                         RmonItems.Add(rmonItems);
                     }
                 }
-               //RmonOppIps.Clear();
+                //RmonOppIps.Clear();
             }
         }
         private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
@@ -390,7 +388,8 @@ namespace LogAnalyzerV2.Services
         }
         private void VAFServerCollection(string line)
         {
-            if (!line.Contains("UNMS VAF Module Service,An agent service stopped and started again"))
+            if (!line.Contains("UNMS VAF Module Service,An agent service stopped and started again")
+                && !line.Contains("UNMS VAF Module Service,An agent service started to work during the job is in progress."))
             {
                 if (line.Contains("config file"))
                 {
