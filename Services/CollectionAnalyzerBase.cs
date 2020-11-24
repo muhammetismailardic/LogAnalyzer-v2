@@ -48,38 +48,57 @@ namespace LogAnalyzerV2.Services
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
         }
-
         private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             missingOpposites = new List<MissingOpposite>();
 
+            // Get the first list of NEs to proceed further
             AnalyzeNEList(max, result, counter, e, bw);
+            //Get the opposite information from NE list.
             AnalyzeNEListForOpposite();
 
-
-
             AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
-            UpdatingTheListWithRmonFile();
-
+            //UpdatingTheListWithRmonFile();
         }
-
         private void AnalyzeNEListForOpposite()
         {
             var IpList = missingOpposites.Select(x => x.IP).Distinct();
 
             foreach (var Ip in IpList)
             {
+                //find details for defined Ip
                 var findIp = missingOpposites.Where(x => x.IP == Ip).ToList();
-                var findOpps = findIp.Select(y => y.OppIP).ToList();
 
-                foreach (var item in findOpps)
+                //Find all port information
+                var findNearEndPorts = findIp.Select(x => x.Port).ToList();
+
+                //Find all opp ports
+                var findOpps = findIp.Select(y => y.OppIP).ToList().Distinct();
+                foreach (var oppIp in findOpps)
                 {
-                    var oppPort = missingOpposites.Where(x => x.IP == item && x.OppIP == Ip).Select(y=>y.Port);
-                }
+                    // Find reverse opposite ports for selected IP.
+                    var oppPorts = missingOpposites.Where(x => x.IP == oppIp && x.OppIP == Ip).Select(y => y.Port).ToList();
 
+                    // If Selected reverse opp ip exist at other end
+                    if (oppPorts != null)
+                    {
+                        int i = 0;
+                        foreach (var missingOpposite in missingOpposites.Where(ip => ip.IP == Ip && ip.OppIP == oppIp))
+                        {
+                            if (String.IsNullOrWhiteSpace(missingOpposite.OppPort))
+                            {
+                                while (i < oppPorts.Count())
+                                {
+                                    missingOpposite.OppPort = oppPorts[i];
+                                    break;
+                                }
+                                i++;
+                            }
+                        }
+                    }
+                }
             }
         }
-
         private void UpdatingTheListWithRmonFile()
         {
             // TODO 15 dakikalıklar için bakılacak
@@ -315,8 +334,9 @@ namespace LogAnalyzerV2.Services
                         {
                             if (!String.IsNullOrEmpty(items[index].ToString()))
                             {
+                                // Slot Number
                                 var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
-
+                            
                                 if (currrentIndexLoc == 9)
                                 {
                                     currrentIndexLoc = 11;
@@ -333,7 +353,7 @@ namespace LogAnalyzerV2.Services
                                 {
                                     currrentIndexLoc = 14;
                                 }
-
+                                
                                 NeListOppIps.Add((items[index] + "," + "MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
                             }
                         }
