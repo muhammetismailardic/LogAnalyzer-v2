@@ -9,7 +9,7 @@ namespace LogAnalyzerV2.Models
     public class MissingOpposite
     {
         public string Status { get; set; }
-        public string Time { get; set; }
+        public string Date { get; set; }
         public string IP { get; set; }
         public string Port { get; set; }
         public string OppIP { get; set; }
