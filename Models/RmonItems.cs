@@ -12,6 +12,7 @@ namespace LogAnalyzerV2.Models
         public string Port { get; set; } = " ";
         public string OppIP { get; set; } = " ";
         public string OppPort { get; set; } = " ";
+        public string OppPortInRmon { get; set; } = " ";
         public string GroupMember { get; set; } = " ";
         public string Date { get; set; } = " ";
     }

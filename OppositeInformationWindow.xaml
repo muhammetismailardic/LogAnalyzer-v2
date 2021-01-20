@@ -8,12 +8,14 @@
         Title="OppositeInformationWindow" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="25" />
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
-        <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="0">
+        <Button x:Name="btnExpOppList" Grid.Row="0" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpOppList_Click" />
+        <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="1">
             <dxg:GridControl.View>
-                <dxg:TableView AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns"/>
+                <dxg:TableView x:Name="grdMissingOppListTable" AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns"/>
             </dxg:GridControl.View>
             <dxg:GridColumn FieldName="Status"/>
             <dxg:GridColumn FieldName="Date"/>
@@ -21,13 +23,14 @@
             <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppIP"/>
             <dxg:GridColumn FieldName="OppPort"/>
+            <dxg:GridColumn FieldName="OppPortInRmon"/>
             <dxg:GridColumn FieldName="GroupMember"/>
             <dxg:GridColumn FieldName="HasRmon"/>
             <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>
         
-        <Button x:Name="btnCheckOpposite" Grid.Row="1" Content="CheckOpposite" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" Click="btnCheckOpposite_Click" />
-        <ProgressBar x:Name="MissingOppProgressBar" Grid.Row="1" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,5,5,5" />
-        <Label x:Name="lblMissingOppPercentage" Grid.Row="1" Width="150" Height="22" Margin="220,8,372,7" HorizontalAlignment="Left" />
+        <Button x:Name="btnCheckOpposite" Grid.Row="2" Content="CheckOpposite" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" Click="btnCheckOpposite_Click" />
+        <ProgressBar x:Name="MissingOppProgressBar" Grid.Row="2" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,5,5,5" />
+        <Label x:Name="lblMissingOppPercentage" Grid.Row="2" Width="150" Height="22" Margin="220,8,372,7" HorizontalAlignment="Left" />
     </Grid>
 </Window>
