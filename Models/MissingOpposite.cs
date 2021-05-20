@@ -10,6 +10,7 @@ namespace LogAnalyzerV2.Models
     {
         public string Status { get; set; } = "Issue";
         public string Date { get; set; }
+        public string NEName { get; set; }
         public string IP { get; set; }
         public string Port { get; set; }
         public string OppIP { get; set; }

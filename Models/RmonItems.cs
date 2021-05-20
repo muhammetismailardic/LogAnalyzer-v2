@@ -15,5 +15,6 @@ namespace LogAnalyzerV2.Models
         public string OppPortInRmon { get; set; } = " ";
         public string GroupMember { get; set; } = " ";
         public string Date { get; set; } = " ";
+        public string NEName { get; set; }
     }
 }

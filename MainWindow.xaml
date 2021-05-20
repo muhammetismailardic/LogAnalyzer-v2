@@ -16,7 +16,6 @@
         <DockPanel Grid.Row="0">
             <Menu DockPanel.Dock="Top" Height="25">
                 <MenuItem Header="Other Tools">
-                    <MenuItem Header="File Transfer Result" />
                     <MenuItem Header="FTP Issued NEs" />
                     <MenuItem Header="Calculate NE FTP Duration" />
                     <MenuItem Header="Comma Counter" />
@@ -145,7 +144,7 @@
                     </dxg:GridControl>
                 </Grid>
             </TabItem>
-            <TabItem Header="Agent File Transfer">
+            <TabItem Header="Agent File Transfers">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20" />

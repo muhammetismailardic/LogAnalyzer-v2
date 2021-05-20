@@ -230,6 +230,11 @@ namespace LogAnalyzerV2.Services
                         int loc = 0;
                         for (int i = 0; i < items.Length; i++)
                         {
+                            if (items[i].Equals("#NE Name"))
+                            {
+                                RmonIndexLoc.Add("#NE Name," + loc);
+                            }
+
                             if (items[i].Equals("Date"))
                             {
                                 RmonIndexLoc.Add("Date," + loc);
@@ -275,6 +280,11 @@ namespace LogAnalyzerV2.Services
 
                             if (IsOk)
                             {
+                                if (item.Split(',')[0] == "#NE Name")
+                                {
+                                    rmonItems.NEName = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
                                 if (item.Split(',')[0] == "Date")
                                 {
                                     rmonItems.Date = items[(int.Parse(item.Split(',')[1]))];
@@ -330,7 +340,7 @@ namespace LogAnalyzerV2.Services
                 e.Result = result;
 
                 //Using Rmon data
-                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
+                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.NEName, a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
                 if (rmonSelectedOppPort.Count == 1)
                 {
                     var rmonTheSelected = rmonSelectedOppPort.SingleOrDefault();
@@ -342,6 +352,7 @@ namespace LogAnalyzerV2.Services
                         preparedNEListItems.Date = rmonTheSelected.Date;
                         preparedNEListItems.GroupMember = (String.IsNullOrWhiteSpace(rmonTheSelected.GroupMember) ? "-" : rmonTheSelected.GroupMember);
                         preparedNEListItems.OppPortInRmon = rmonTheSelected.OppPort;
+                        preparedNEListItems.NEName = rmonTheSelected.NEName;
 
                         if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
                         {
@@ -360,6 +371,22 @@ namespace LogAnalyzerV2.Services
                                     if (rmonOppPort[0].Contains(neListOppPort[1]))
                                     {
                                         preparedNEListItems.IsMatch = true;
+                                    }
+                                    else
+                                    {
+                                        var grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
+                                        //if(grpMember == null)
+                                        //{
+                                        //    grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == rmonTheSelected.OppPort).GroupMember;
+                                        //    if (grpMember.Contains(neListOppPort[1]))
+                                        //        preparedNEListItems.IsMatch = true;
+                                        //}
+                                        if(grpMember != null)
+                                        {
+                                            if (grpMember.GroupMember.Contains(neListOppPort[1]))
+                                                preparedNEListItems.IsMatch = true;
+                                        }
+                                        
                                     }
                                 }
                                 else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
