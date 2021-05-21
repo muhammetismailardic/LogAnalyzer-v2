@@ -30,7 +30,6 @@ namespace LogAnalyzerV2.Services
         public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
         List<RmonItems> RmonItems;
         List<string> RmonIndexLoc;
-        List<String> dublicationTest = new List<string>();
         private int rmonLineCount = 0;
 
         private string[] properLine;
@@ -356,43 +355,33 @@ namespace LogAnalyzerV2.Services
 
                         if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
                         {
+                            // If NE list and Rmon Opposite match!
                             if (rmonTheSelected.OppPort == preparedNEListItems.OppPort)
                             {
                                 preparedNEListItems.IsMatch = true;
                                 preparedNEListItems.GroupMember = rmonTheSelected.GroupMember;
                             }
-                            else
+                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
                             {
-                                //if Card information could not be collected
-                                var rmonOppPort = rmonTheSelected.OppPort.Split('/');
-                                if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
+                                //Check Group Member for any potential match
+                                var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+                                var grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
+
+                                if (grpMember != null)
                                 {
-                                    var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-                                    if (rmonOppPort[0].Contains(neListOppPort[1]))
-                                    {
+                                    if (grpMember.GroupMember.Contains(neListOppPort[1]))
                                         preparedNEListItems.IsMatch = true;
-                                    }
-                                    else
-                                    {
-                                        var grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
-                                        //if(grpMember == null)
-                                        //{
-                                        //    grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == rmonTheSelected.OppPort).GroupMember;
-                                        //    if (grpMember.Contains(neListOppPort[1]))
-                                        //        preparedNEListItems.IsMatch = true;
-                                        //}
-                                        if(grpMember != null)
-                                        {
-                                            if (grpMember.GroupMember.Contains(neListOppPort[1]))
-                                                preparedNEListItems.IsMatch = true;
-                                        }
-                                        
-                                    }
                                 }
-                                else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
-                                {
-                                    preparedNEListItems.Status = "Issue, (OppIp HasNoLinks)";
-                                }
+                            }
+                            else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
+                            {
+                                preparedNEListItems.Status = "Issue, (OppIp HasNoLinks)";
+                            }
+
+                            //Control Edilecek.
+                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
+                            {
+                                preparedNEListItems.Status = "Issue, (NE List has Opp but Rmon Does'nt have Opp)";
                             }
                         }
 
@@ -401,11 +390,6 @@ namespace LogAnalyzerV2.Services
                             preparedNEListItems.Status = "Ok";
                         }
                     }
-                }
-
-                else if (rmonSelectedOppPort.Count != 0)
-                {
-                    dublicationTest.Add(preparedNEListItems.IP.ToString());
                 }
                 else
                 {
