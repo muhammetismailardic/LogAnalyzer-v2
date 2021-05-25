@@ -61,9 +61,11 @@ namespace LogAnalyzerV2.Services
         {
             List<string> NeListOppIps = new List<string>();
             string primaryAdd = "";
+            string NeType = "";
 
             List<int> NeListOppLoc = new List<int>();
             int primaryAddLoc = 3;
+            int NeTypeLoc = 2;
 
             foreach (string line in NEList)
             {
@@ -77,14 +79,13 @@ namespace LogAnalyzerV2.Services
                     bw.ReportProgress(progressPercentage);
                     e.Result = result;
 
-                    // TODO // Define opp Ip Loc
+                    // TODO Define opp Ip Loc
                     var items = line.Split(',');
                     if (NEList.IndexOf(line) == 1)
                     {
                         int loc = 0;
                         for (int i = 0; i < items.Length; i++)
                         {
-                            //Console.WriteLine("Index: " + loc++ + " Item Name: " + items[i].ToString() + "\n");
                             if (items[i].Contains("Opposite NE Primary Address-"))
                             {
                                 NeListOppLoc.Add(loc);
@@ -96,8 +97,13 @@ namespace LogAnalyzerV2.Services
                     // Find Opp IPs
                     if (NEList.IndexOf(line) != 0 && NEList.IndexOf(line) != 1)
                     {
-                        if (primaryAddLoc != -1)
+                        // Getting NE Type and IP address.
+                        if (primaryAddLoc != -1 && NeTypeLoc != -1)
+                        {
                             primaryAdd = items[primaryAddLoc].ToString();
+                            NeType = items[NeTypeLoc].ToString();
+                        }
+                        
 
                         foreach (var index in NeListOppLoc)
                         {
@@ -133,6 +139,7 @@ namespace LogAnalyzerV2.Services
                         {
                             var missingOpp = new MissingOpposite()
                             {
+                                NEType = NeType,
                                 IP = Regex.Replace(primaryAdd, "0*([0-9]+)", "${1}"),
                                 Port = item.Split(',')[1].ToString(),
                                 OppIP = item.Split(',')[0].ToString(),
@@ -143,6 +150,7 @@ namespace LogAnalyzerV2.Services
                     }
                 }
                 primaryAdd = "";
+                NeType = "";
                 NeListOppIps.Clear();
             }
 
@@ -229,11 +237,6 @@ namespace LogAnalyzerV2.Services
                         int loc = 0;
                         for (int i = 0; i < items.Length; i++)
                         {
-                            if (items[i].Equals("#NE Name"))
-                            {
-                                RmonIndexLoc.Add("#NE Name," + loc);
-                            }
-
                             if (items[i].Equals("Date"))
                             {
                                 RmonIndexLoc.Add("Date," + loc);
@@ -279,11 +282,6 @@ namespace LogAnalyzerV2.Services
 
                             if (IsOk)
                             {
-                                if (item.Split(',')[0] == "#NE Name")
-                                {
-                                    rmonItems.NEName = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
                                 if (item.Split(',')[0] == "Date")
                                 {
                                     rmonItems.Date = items[(int.Parse(item.Split(',')[1]))];
@@ -339,7 +337,7 @@ namespace LogAnalyzerV2.Services
                 e.Result = result;
 
                 //Using Rmon data
-                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.NEName, a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
+                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new {a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
                 if (rmonSelectedOppPort.Count == 1)
                 {
                     var rmonTheSelected = rmonSelectedOppPort.SingleOrDefault();
@@ -350,9 +348,11 @@ namespace LogAnalyzerV2.Services
                         preparedNEListItems.HasRmon = true;
                         preparedNEListItems.Date = rmonTheSelected.Date;
                         preparedNEListItems.GroupMember = (String.IsNullOrWhiteSpace(rmonTheSelected.GroupMember) ? "-" : rmonTheSelected.GroupMember);
+                        preparedNEListItems.OppIpInRmon = rmonTheSelected.OppIP;
                         preparedNEListItems.OppPortInRmon = rmonTheSelected.OppPort;
-                        preparedNEListItems.NEName = rmonTheSelected.NEName;
+                        //preparedNEListItems.NEName = rmonTheSelected.NEName;
 
+                        //If NE list opposite match with Rmon line.
                         if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
                         {
                             // If NE list and Rmon Opposite match!
@@ -361,9 +361,9 @@ namespace LogAnalyzerV2.Services
                                 preparedNEListItems.IsMatch = true;
                                 preparedNEListItems.GroupMember = rmonTheSelected.GroupMember;
                             }
-                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
+                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
                             {
-                                //Check Group Member for any potential match
+                                //Check if Group Member for any potential match
                                 var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
                                 var grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
 
@@ -373,16 +373,18 @@ namespace LogAnalyzerV2.Services
                                         preparedNEListItems.IsMatch = true;
                                 }
                             }
-                            else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
-                            {
-                                preparedNEListItems.Status = "Issue, (OppIp HasNoLinks)";
-                            }
-
-                            //Control Edilecek.
                             else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
                             {
-                                preparedNEListItems.Status = "Issue, (NE List has Opp but Rmon Does'nt have Opp)";
+                                preparedNEListItems.Status = "Issue, (Only NE list has opposite Info)";
                             }
+                            else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
+                            {
+                                preparedNEListItems.Status = "Issue, (Only Rmon has Opposite info)";
+                            }
+                        }
+                        else if (String.IsNullOrWhiteSpace(rmonTheSelected.OppIP))
+                        {
+                            preparedNEListItems.Status = "Issue, (Rmon has No Opposite IP)";
                         }
 
                         if (preparedNEListItems.IsMatch == true && preparedNEListItems.HasRmon == true)
@@ -395,7 +397,7 @@ namespace LogAnalyzerV2.Services
                 {
                     if (preparedNEListItems.HasRmon == false && String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
                     {
-                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon & OppIp Does'nt haveLinks)";
+                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon and Opposite Link)";
                     }
 
                     else if (preparedNEListItems.HasRmon == false)

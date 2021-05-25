@@ -19,11 +19,12 @@
             </dxg:GridControl.View>
             <dxg:GridColumn FieldName="Status"/>
             <dxg:GridColumn FieldName="Date"/>
-            <dxg:GridColumn FieldName="NEName"/>
+            <dxg:GridColumn FieldName="NEType"/>
             <dxg:GridColumn FieldName="IP"/>
-            <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppIP"/>
+            <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppPort"/>
+            <dxg:GridColumn FieldName="OppIpInRmon"/>
             <dxg:GridColumn FieldName="OppPortInRmon"/>
             <dxg:GridColumn FieldName="GroupMember"/>
             <dxg:GridColumn FieldName="HasRmon"/>
