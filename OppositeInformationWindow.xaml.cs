@@ -41,6 +41,7 @@ namespace LogAnalyzerV2
 
             bgWorker.NEList = new List<string>();
             bgWorker.RmonData = new List<string>();
+            bgWorker.RadioConfData = new List<string>();
 
             int OppProgressBarItemCount = 0;
 
@@ -75,6 +76,10 @@ namespace LogAnalyzerV2
                             {
                                 bgWorker.RmonData.AddRange(list.ToList());
                             }
+                            else if (path.Contains("RadioIP"))
+                            {
+                                bgWorker.RadioConfData.AddRange(list.ToList());
+                            }
                         }
                         else
                         {
@@ -93,11 +98,11 @@ namespace LogAnalyzerV2
 
         private bool FileNameCheck(string[] InsertedFileNames)
         {
-            string[] desiredNames = { "NEList.csv", "rmon_1day" };
-            string[] InsertedNames = new string[2];
+            string[] desiredNames = { "NEList.csv", "rmon_1day", "RadioIP" };
+            string[] InsertedNames = new string[3];
 
             // Check if required file names are ok!
-            if (InsertedFileNames.Length <= 2)
+            if (InsertedFileNames.Length <= 3)
             {
                 for (int i = 0; i < InsertedFileNames.Length; i++)
                 {
@@ -105,6 +110,10 @@ namespace LogAnalyzerV2
                     if (temp.Contains("rmon"))
                     {
                         InsertedNames[i] = temp.Remove(temp.LastIndexOf('_'));
+                    }
+                    else if (temp.Contains("RadioIP"))
+                    {
+                        InsertedNames[i] = temp.Remove(temp.LastIndexOf('-'));
                     }
                     else { InsertedNames[i] = temp; }
                 }

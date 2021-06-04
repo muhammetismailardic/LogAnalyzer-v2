@@ -24,9 +24,11 @@
             <dxg:GridColumn FieldName="OppIP"/>
             <dxg:GridColumn FieldName="Port"/>
             <dxg:GridColumn FieldName="OppPort"/>
+            <dxg:GridColumn FieldName="OppPortInRadio"/>
             <dxg:GridColumn FieldName="OppIpInRmon"/>
             <dxg:GridColumn FieldName="OppPortInRmon"/>
             <dxg:GridColumn FieldName="GroupMember"/>
+            <dxg:GridColumn FieldName="OppGroupMember"/>
             <dxg:GridColumn FieldName="HasRmon"/>
             <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>

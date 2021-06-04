@@ -25,13 +25,22 @@ namespace LogAnalyzerV2.Services
         public List<string> logList;
         public List<string> NEList;
         public List<string> RmonData;
+        public List<string> RadioConfData;
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
         public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
+
         List<RmonItems> RmonItems;
         List<string> RmonIndexLoc;
-        private int rmonLineCount = 0;
+        List<RadioConfItems> RadioConfigurationItems;
+        List<string> RadioConfigurationIndexLoc;
+        List<RadioConfItems> newList = new List<RadioConfItems>();
 
+        //Using NE List
+        string tempIp = String.Empty;
+        string tempTX = String.Empty;
+        string tempPort = String.Empty;
+        private int rmonLineCount = 0;
         private string[] properLine;
         private string collectionType, items;
 
@@ -45,7 +54,7 @@ namespace LogAnalyzerV2.Services
             {
                 AnalyzeLog(max, result, counter, e, bw);
             }
-            else if (NEList != null && NEList.Count != 0 && RmonData != null && RmonData.Count != 0)
+            else if (NEList != null && NEList.Count != 0 && RmonData != null && RmonData.Count != 0 && RadioConfData != null && RadioConfData.Count != 0)
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
@@ -56,6 +65,11 @@ namespace LogAnalyzerV2.Services
 
             // Get the first list of NEs to proceed further
             AnalyzeNEList(max, result, counter, e, bw);
+            //Get the opposite information from NE list.
+            AnalyzeNEListForOpposite(max, result, counter, e, bw);
+            AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
+            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
         }
         private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -103,7 +117,7 @@ namespace LogAnalyzerV2.Services
                             primaryAdd = items[primaryAddLoc].ToString();
                             NeType = items[NeTypeLoc].ToString();
                         }
-                        
+
 
                         foreach (var index in NeListOppLoc)
                         {
@@ -157,8 +171,7 @@ namespace LogAnalyzerV2.Services
             //Adding counts to progress bar
             max += missingOpposites.Count();
 
-            //Get the opposite information from NE list.
-            AnalyzeNEListForOpposite(max, result, counter, e, bw);
+
         }
         private void AnalyzeNEListForOpposite(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -207,7 +220,105 @@ namespace LogAnalyzerV2.Services
                     }
                 }
             }
-            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+
+        }
+        private void AnalyzeRadioConfigurationInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            RadioConfigurationIndexLoc = new List<string>();
+            RadioConfigurationItems = new List<RadioConfItems>();
+
+            // Analyze Radio Configuration data to find index and related data for further process
+            // When this loop over RadioConfigurationItems list will be filled.
+
+            foreach (string line in RadioConfData)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    result++;
+                    bw.ReportProgress(progressPercentage);
+                    e.Result = result;
+
+                    // Finding Indexies
+                    var items = line.Split(',');
+                    if (RadioConfData.IndexOf(line) == 0)
+                    {
+                        ////Define the RadioConfData line count
+                        //rmonLineCount = items.Length;
+
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            if (items[i].Equals("Near End IP Address") || items[i].Equals("IP Address"))
+                            {
+                                RadioConfigurationIndexLoc.Add("IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Near End Slot") || items[i].Equals("Slot"))
+                            {
+                                RadioConfigurationIndexLoc.Add("Port," + loc);
+                            }
+
+                            //if (items[i].Equals("Far End IP Address"))
+                            //{
+                            //    RadioConfigurationIndexLoc.Add("Port," + loc);
+                            //}
+
+                            if (items[i].Equals("TX RF Frequency"))
+                            {
+                                RadioConfigurationIndexLoc.Add("TX Frequency," + loc);
+                            }
+
+                            if (items[i].Equals("RX RF Frequency"))
+                            {
+                                RadioConfigurationIndexLoc.Add("RX Frequency," + loc);
+                            }
+
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs using Index
+                    if (RadioConfData.IndexOf(line) != 0)
+                    {
+                        // Insert headers to list
+                        var radioConfItems = new RadioConfItems();
+                        foreach (var item in RadioConfigurationIndexLoc)
+                        {
+                            //Check if the array lenght is ok
+                            bool IsOk = inBounds((int.Parse(item.Split(',')[1])), items);
+
+                            if (IsOk)
+                            {
+                                if (item.Split(',')[0] == "IP Address")
+                                {
+                                    radioConfItems.IpAddress = Regex.Replace(items[(int.Parse(item.Split(',')[1]))], "0*([0-9]+)", "${1}");
+                                }
+
+                                else if (item.Split(',')[0] == "Port")
+                                {
+                                    radioConfItems.Port = "MODEM (" + "Slot" + int.Parse(items[(int.Parse(item.Split(',')[1]))]).ToString("D2") + ")";
+                                }
+
+                                else if (item.Split(',')[0] == "TX Frequency")
+                                {
+                                    radioConfItems.TXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "RX Frequency")
+                                {
+                                    radioConfItems.RXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
+                                }
+                            }
+                        }
+
+                        //Adding items to Rmon list.
+                        RadioConfigurationItems.Add(radioConfItems);
+                    }
+                }
+            }
         }
         private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -319,15 +430,12 @@ namespace LogAnalyzerV2.Services
                     }
                 }
             }
-
-            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
         }
         private void UpdatingTheListWithRmonFile(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
-            // TODO 15 dakikalıklar için bakılacak
-            //Using NE List
             foreach (var preparedNEListItems in missingOpposites)
             {
+                bool isLast = false;
                 counter++;
                 int progressPercentage = Convert.ToInt32((counter * 100) / max);
 
@@ -336,8 +444,14 @@ namespace LogAnalyzerV2.Services
                 bw.ReportProgress(progressPercentage);
                 e.Result = result;
 
-                //Using Rmon data
-                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new {a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
+                if (preparedNEListItems == missingOpposites.Last())
+                {
+                    isLast = true;
+                }
+                InsertRadioConfDataToNEList(preparedNEListItems, isLast);
+
+                //Updating Missing Opposite with Rmon using Rmon data
+                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
                 if (rmonSelectedOppPort.Count == 1)
                 {
                     var rmonTheSelected = rmonSelectedOppPort.SingleOrDefault();
@@ -345,12 +459,22 @@ namespace LogAnalyzerV2.Services
                     //Update the selected list if exist.
                     if (rmonSelectedOppPort != null)
                     {
+                        //Check if Group Member for any potential match
+                        //var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+                        var findOppositeIpDetails = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
+
                         preparedNEListItems.HasRmon = true;
                         preparedNEListItems.Date = rmonTheSelected.Date;
                         preparedNEListItems.GroupMember = (String.IsNullOrWhiteSpace(rmonTheSelected.GroupMember) ? "-" : rmonTheSelected.GroupMember);
                         preparedNEListItems.OppIpInRmon = rmonTheSelected.OppIP;
                         preparedNEListItems.OppPortInRmon = rmonTheSelected.OppPort;
-                        //preparedNEListItems.NEName = rmonTheSelected.NEName;
+
+                        if (findOppositeIpDetails != null)
+                            preparedNEListItems.OppGroupMember = (String.IsNullOrWhiteSpace(findOppositeIpDetails.GroupMember) ? "-" : findOppositeIpDetails.GroupMember);
+
+                        // Linking both Near & Far End NE type
+                        string oppPortNeType = missingOpposites.Where(x => x.IP == preparedNEListItems.OppIP && x.Port == preparedNEListItems.OppPort).Select(t => t.NEType).FirstOrDefault();
+                        preparedNEListItems.NEType = preparedNEListItems.NEType + "--" + oppPortNeType;
 
                         //If NE list opposite match with Rmon line.
                         if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
@@ -363,13 +487,9 @@ namespace LogAnalyzerV2.Services
                             }
                             else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
                             {
-                                //Check if Group Member for any potential match
-                                var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-                                var grpMember = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
-
-                                if (grpMember != null)
+                                if (findOppositeIpDetails != null)
                                 {
-                                    if (grpMember.GroupMember.Contains(neListOppPort[1]))
+                                    if (findOppositeIpDetails.GroupMember.Contains(preparedNEListItems.OppPort))
                                         preparedNEListItems.IsMatch = true;
                                 }
                             }
@@ -404,7 +524,10 @@ namespace LogAnalyzerV2.Services
                         preparedNEListItems.Status = "Issue, (Does'nt have Rmon)";
                 }
             }
+            MarkCrossConnectedPorts();
         }
+
+        // For Log Analyzer
         private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             foreach (string line in logList)
@@ -1196,6 +1319,371 @@ namespace LogAnalyzerV2.Services
 
             //file is not locked
             return false;
+        }
+        private List<int> GetIntListFromStringList(List<string> stringValue)
+        {
+            var numbers = new List<int>();
+            foreach (var item in stringValue)
+            {
+                Regex num = new Regex(@"\d+");
+                if (item == null)
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else if (item == "Not Available")
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else if (String.IsNullOrEmpty(item))
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else
+                {
+                    Match portNum = num.Match(item);
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+            }
+            return numbers;
+        }
+        private int getintFromString(string str)
+        {
+            Regex num = new Regex(@"\d+");
+            Match portNum = num.Match(str);
+
+            int a;
+            if (int.TryParse(portNum.Value, out a))
+            {
+                return int.Parse(portNum.Value);
+            }
+            else { return -1; }
+        }
+        private void InsertRadioConfDataToNEList(MissingOpposite preparedNEListItems, bool islast)
+        {
+            //Updating Prepared Nelist with Radio Configuration data.
+            try
+            {
+                var nearEndTXFrequency = RadioConfigurationItems.Where(x => x.IpAddress == preparedNEListItems.IP && x.Port == preparedNEListItems.Port)
+                                       .Select(o => new { o.Port, o.TXRFFrequency }).FirstOrDefault();
+
+                // If Temp Ip is not null and TX frequency changed means port or Ip changed
+                if (!String.IsNullOrEmpty(tempIp) && (preparedNEListItems.IP != tempIp
+                    || preparedNEListItems.Port != tempPort
+                    || nearEndTXFrequency.TXRFFrequency != tempTX))
+                {
+                    //Define SWGroups and opposite radio conf ports
+                    DefineOppPorts();
+                }
+
+                try
+                {
+                    if (nearEndTXFrequency != null)
+                    {
+                        var oppositePortsAndRXFrequencies = RadioConfigurationItems.Where(x => x.IpAddress == preparedNEListItems.OppIP && x.RXRFFrequency == nearEndTXFrequency.TXRFFrequency)
+                                                .Select(o => new { o.IpAddress, o.Port, o.RXRFFrequency }).ToList();
+
+                        if (nearEndTXFrequency != null && oppositePortsAndRXFrequencies.Count != 0)
+                        {
+                            Regex nPort = new Regex(@"\d+");
+                            Match radioConfPort = nPort.Match(nearEndTXFrequency.Port);
+
+                            var nearEndIp = new RadioConfItems();
+                            nearEndIp.IpAddress = preparedNEListItems.IP;
+                            nearEndIp.Port = radioConfPort.Value;
+                            nearEndIp.TXRFFrequency = nearEndTXFrequency.TXRFFrequency;
+                            nearEndIp.OppIpAddress = preparedNEListItems.OppIP;
+                            newList.Add(nearEndIp);
+
+                            if ((preparedNEListItems.IP != tempIp && nearEndTXFrequency.TXRFFrequency != tempTX)
+                                || (preparedNEListItems.Port != tempPort && nearEndTXFrequency.TXRFFrequency != tempTX))
+                            {
+                                foreach (var item in oppositePortsAndRXFrequencies)
+                                {
+                                    Regex rOppPort = new Regex(@"\d+");
+                                    Match radioConfOppPort = rOppPort.Match(item.Port);
+                                    var farEndIp = new RadioConfItems
+                                    {
+                                        Port = radioConfOppPort.Value,
+                                        RXRFFrequency = item.RXRFFrequency,
+                                        IpAddress = item.IpAddress,
+                                        OppIpAddress = missingOpposites.Where(x => x.IP == item.IpAddress && x.Port == item.Port).Select(y => y.OppIP).SingleOrDefault()
+                                    };
+
+                                    newList.Add(farEndIp);
+                                }
+                            }
+
+                            tempIp = preparedNEListItems.IP;
+                            tempTX = nearEndTXFrequency.TXRFFrequency;
+                            tempPort = preparedNEListItems.Port;
+
+                            if (islast)
+                            {
+                                DefineOppPorts();
+                            }
+                        }
+
+                        else { preparedNEListItems.OppPortInRadio = "Not Available"; }
+                    }
+                    else { preparedNEListItems.OppPortInRadio = "Not Available"; }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Opposite adding from radio conf.");
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        private void DefineOppPorts()
+        {
+            //Defining SW Groups into separete list.
+            foreach (var item in newList)
+            {
+                switch (int.Parse(item.Port))
+                {
+                    case 01:
+                        item.SWGroup = "SW1";
+                        break;
+                    case 02:
+                        item.SWGroup = "SW1";
+                        break;
+                    case 03:
+                        item.SWGroup = "SW2";
+                        break;
+                    case 04:
+                        item.SWGroup = "SW2";
+                        break;
+                    case 05:
+                        item.SWGroup = "SW3";
+                        break;
+                    case 06:
+                        item.SWGroup = "SW3";
+                        break;
+                    case 07:
+                        item.SWGroup = "SW4";
+                        break;
+                    case 08:
+                        item.SWGroup = "SW4";
+                        break;
+                    case 09:
+                        item.SWGroup = "SW5";
+                        break;
+                    case 10:
+                        item.SWGroup = "SW5";
+                        break;
+                    case 11:
+                        item.SWGroup = "SW6";
+                        break;
+                    case 12:
+                        item.SWGroup = "SW6";
+                        break;
+                    case 13:
+                        item.SWGroup = "SW7";
+                        break;
+                    case 14:
+                        item.SWGroup = "SW7";
+                        break;
+                }
+            }
+
+            List<RadioConfItems> selectNearEnd = new List<RadioConfItems>();
+            List<RadioConfItems> selectFarEnd = new List<RadioConfItems>();
+
+            var selectAdressFromNewlist = newList.Select(y => y.IpAddress).ToList();
+
+            try
+            {
+                for (int i = 0; i < selectAdressFromNewlist.Distinct().Count(); i++)
+                {
+                    if (i == 0)
+                    {
+                        selectNearEnd = newList.Where(x => x.IpAddress == selectAdressFromNewlist[i]).ToList();
+                    }
+                    else if (i == 1)
+                    {
+                        selectFarEnd = newList.Where(x => x.IpAddress == selectAdressFromNewlist[i]).ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("The code blows up here!");
+                throw;
+            }
+
+            try
+            {
+                // Defining Opposite SW Groups and ports for near end modems.
+                if (selectFarEnd.Count != 0)
+                {
+                    for (int i = 0; i < selectNearEnd.Count; i++)
+                    {
+                        var slctFarEnd = selectFarEnd.Where(x => x.OppIpAddress == selectNearEnd[i].IpAddress).ToList();
+
+                        if (i == 0)
+                        {
+                            selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                            selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                        }
+                        else if (selectNearEnd[i].SWGroup == selectNearEnd[i - 1].SWGroup)
+                        {
+                            selectNearEnd[i].OppSWGroup = selectNearEnd[i - 1].SWGroup;
+                            selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                        }
+
+                        if (slctFarEnd.Count < i)
+                        {
+                            if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i].SWGroup))
+                            {
+                                selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                                selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            }
+
+                            if (slctFarEnd.Count < (i + 1))
+                            {
+                                if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i + 1].SWGroup))
+                                {
+                                    selectNearEnd[i].OppSWGroup = slctFarEnd[i + 1].SWGroup;
+                                    selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message, "The code blow ups here!");
+                throw;
+            }
+
+            updateRadioConfOnNEList(selectNearEnd);
+            newList = new List<RadioConfItems>();
+        }
+        private void updateRadioConfOnNEList(List<RadioConfItems> selectNearEnd)
+        {
+            try
+            {
+                if (selectNearEnd.Count != 0)
+                {
+                    foreach (var nearEnditem in selectNearEnd)
+                    {
+                        if (nearEnditem.OppPort == null)
+                        {
+                            nearEnditem.OppPort = "Not Available";
+                        }
+                        foreach (var item in missingOpposites.Where(x => x.IP == nearEnditem.IpAddress).ToList())
+                        {
+                            if (nearEnditem.IpAddress == item.IP && "MODEM (" + "Slot" + nearEnditem.Port.ToString() + ")" == item.Port)
+                            {
+                                if (getintFromString(nearEnditem.OppPort) == getintFromString(item.OppPort) || getintFromString(item.OppPort) == (getintFromString(nearEnditem.OppPort) + 1))
+                                {
+                                    item.OppPortInRadio = nearEnditem.OppPort;
+                                }
+                                else { item.OppPortInRadio = nearEnditem.OppPort; }
+                            }
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("updateRadioConfOnNEList");
+                throw;
+            }
+        }
+        private string getOppositePort(string oppPortNum)
+        {
+            Regex oppTmp = new Regex(@"\d+");
+            Match oppEndSWValue = oppTmp.Match(oppPortNum);
+
+            switch (int.Parse(oppEndSWValue.Value))
+            {
+                case 01:
+                    return "MODEM (Slot01)";
+                case 02:
+                    return "MODEM (Slot03)";
+                case 03:
+                    return "MODEM (Slot05)";
+                case 04:
+                    return "MODEM (Slot07)";
+                case 05:
+                    return "MODEM (Slot09)";
+                case 06:
+                    return "MODEM (Slot11)";
+                case 07:
+                    return "MODEM (Slot13)";
+                default:
+                    return "Not Found!";
+            }
+        }
+
+        private void MarkCrossConnectedPorts()
+        {
+            var uniqueIds = missingOpposites.Select(x => x.IP).Distinct();
+
+            foreach (var ıds in uniqueIds)
+            {
+                // Marking Cross Connected Ports
+                var test = missingOpposites.Where(x => x.IP == ıds).Select(a => new { a.Port, a.OppPortInRadio }).ToList();
+                var nearEndPorts = GetIntListFromStringList(test.Select(p => p.Port).ToList());
+                var farEndPorts = GetIntListFromStringList(test.Select(p => p.OppPortInRadio).ToList());
+                var combine = nearEndPorts.Zip(farEndPorts, (n, f) => new { NearPort = n, FarPort = f });
+
+
+
+
+                if (nearEndPorts != null && farEndPorts != null)
+                {
+                    int tempValue = 0;
+                    int tempOfTemp = 0;
+                    int count = 0;
+                    foreach (var port in combine)
+                    {
+                        if (tempValue != 0 && port.NearPort > tempValue)
+                        {
+                            if (port.FarPort != 100)
+                                tempOfTemp = port.FarPort;
+                        }
+
+                        if (count == 0)
+                        {
+                            if (port.FarPort != 100)
+                            {
+                                tempValue = port.FarPort;
+                            }
+                        }
+                        else if (count >= 1)
+                        {
+                            if (port.FarPort != 100 && port.FarPort < tempValue)
+                            {
+                                var status = missingOpposites.Where(x => x.IP == ıds && x.Port == "MODEM (" + "Slot" + port.NearPort.ToString() + ")").SingleOrDefault();
+                                status.Status = "Cross Connection detected";
+                            }
+                        }
+                        if (port.FarPort != 100)
+                            count++;
+
+                        // This will work when the near and slot become bigger than previous far end slot
+                        if (tempOfTemp != 0)
+                        {
+                            tempValue = tempOfTemp;
+                            tempOfTemp = 0;
+                        }
+                    }
+                }
+            }
+
         }
         #endregion
     }
