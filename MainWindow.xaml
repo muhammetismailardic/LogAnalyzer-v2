@@ -85,20 +85,23 @@
             <TabItem Header="Collection Statuses">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
                         <RowDefinition Height="20" />
                         <RowDefinition Height="25" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0">
+                    <Button x:Name="btnExpCollectionResults" Grid.Row="0" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpCollectionResults_Click"/>
+                    
+                    <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                        <Label Width="Auto" Height="20" Content="Please Select an Item to display details."></Label>
                     </Grid>
 
-                    <Grid Grid.Row="1">
+                    <Grid Grid.Row="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -109,9 +112,9 @@
                         <ComboBox x:Name="cmbCSVAFSessions" IsEditable="True" IsReadOnly="True" Text="--- Select Server Session ---" Grid.Column="2" Width="Auto" Height="25" SelectionChanged="CmbCSVAFSessions_SelectionChanged" DropDownClosed="cmbCSVAFSessions_DropDownClosed"/>
                     </Grid>
 
-                    <dxg:GridControl x:Name="grdScheduledjobsReport" Grid.Row="2" Grid.ColumnSpan="2">
+                    <dxg:GridControl x:Name="grdScheduledjobsReport" Grid.Row="3" Grid.ColumnSpan="2" SelectionMode="MultipleRow">
                         <dxg:GridControl.View>
-                            <dxg:TableView ShowAutoFilterRow="True" ShowFilterPanelMode="ShowAlways" AllowEditing="False" AutoWidth="True" BestFitMode="Default" ShowCriteriaInAutoFilterRow="False" ShowSearchPanelMode="Never" GroupSummaryDisplayMode="AlignByColumns" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
+                            <dxg:TableView x:Name="grdScheduledjobsReportTable" ShowAutoFilterRow="True" ShowFilterPanelMode="ShowAlways" AllowEditing="True" AutoWidth="True" BestFitMode="Default" ShowCriteriaInAutoFilterRow="False" ShowSearchPanelMode="Never" GroupSummaryDisplayMode="AlignByColumns" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
                         </dxg:GridControl.View>
                         <dxg:GridColumn FieldName="Source"/>
                         <dxg:GridColumn FieldName="Ip"/>

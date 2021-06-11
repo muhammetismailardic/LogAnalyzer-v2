@@ -44,6 +44,10 @@ namespace LogAnalyzerV2.Services
         private string[] properLine;
         private string collectionType, items;
 
+        // For RadioConfiguration
+        List<RadioConfItems> selectNearEnd = new List<RadioConfItems>();
+        List<RadioConfItems> selectFarEnd = new List<RadioConfItems>();
+
         protected void ReadCSVFile(object sender, DoWorkEventArgs e, BackgroundWorker bw)
         {
             int max = (int)e.Argument;
@@ -65,6 +69,7 @@ namespace LogAnalyzerV2.Services
 
             // Get the first list of NEs to proceed further
             AnalyzeNEList(max, result, counter, e, bw);
+
             //Get the opposite information from NE list.
             AnalyzeNEListForOpposite(max, result, counter, e, bw);
             AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
@@ -187,6 +192,11 @@ namespace LogAnalyzerV2.Services
                 result++;
                 bw.ReportProgress(progressPercentage);
                 e.Result = result;
+
+                if(Ip == "10.25.46.5")
+                {
+                    Console.WriteLine("Here");
+                }
 
                 //find details for defined Ip
                 var findIp = missingOpposites.Where(x => x.IP == Ip).ToList();
@@ -524,7 +534,7 @@ namespace LogAnalyzerV2.Services
                         preparedNEListItems.Status = "Issue, (Does'nt have Rmon)";
                 }
             }
-            MarkCrossConnectedPorts();
+            PrepareListForUniqueMatchInOpposite();
         }
 
         // For Log Analyzer
@@ -1237,6 +1247,7 @@ namespace LogAnalyzerV2.Services
                                                             .ToList();
             return colSumList;
         }
+
         // This method filters VAF Sessions from whole collection.
         public List<ServiceSession> serviceSessions(string serverIp, string colType)
         {
@@ -1371,13 +1382,12 @@ namespace LogAnalyzerV2.Services
 
                 // If Temp Ip is not null and TX frequency changed means port or Ip changed
                 if (!String.IsNullOrEmpty(tempIp) && (preparedNEListItems.IP != tempIp
-                    || preparedNEListItems.Port != tempPort
-                    || nearEndTXFrequency.TXRFFrequency != tempTX))
+                    || (preparedNEListItems.Port != tempPort && nearEndTXFrequency.TXRFFrequency != tempTX)))
+                //|| nearEndTXFrequency.TXRFFrequency != tempTX))
                 {
                     //Define SWGroups and opposite radio conf ports
                     DefineOppPorts();
                 }
-
                 try
                 {
                     if (nearEndTXFrequency != null)
@@ -1402,6 +1412,8 @@ namespace LogAnalyzerV2.Services
                             {
                                 foreach (var item in oppositePortsAndRXFrequencies)
                                 {
+                                    var getOppIp = missingOpposites.Where(x => x.IP == item.IpAddress && x.Port == item.Port).Select(y => y.OppIP).FirstOrDefault();
+
                                     Regex rOppPort = new Regex(@"\d+");
                                     Match radioConfOppPort = rOppPort.Match(item.Port);
                                     var farEndIp = new RadioConfItems
@@ -1409,7 +1421,7 @@ namespace LogAnalyzerV2.Services
                                         Port = radioConfOppPort.Value,
                                         RXRFFrequency = item.RXRFFrequency,
                                         IpAddress = item.IpAddress,
-                                        OppIpAddress = missingOpposites.Where(x => x.IP == item.IpAddress && x.Port == item.Port).Select(y => y.OppIP).SingleOrDefault()
+                                        OppIpAddress = getOppIp != null ? getOppIp : ""
                                     };
 
                                     newList.Add(farEndIp);
@@ -1442,64 +1454,126 @@ namespace LogAnalyzerV2.Services
                 throw;
             }
         }
-
         private void DefineOppPorts()
         {
-            //Defining SW Groups into separete list.
-            foreach (var item in newList)
+            DefineSwGroupsByPort();
+            // this for finding opp port of Near End ports.
+            SepareteNearEndFarEndPorts();
+            try
             {
-                switch (int.Parse(item.Port))
+                // Defining Opposite SW Groups and ports for near end modems.
+                if (selectFarEnd.Count != 0)
                 {
-                    case 01:
-                        item.SWGroup = "SW1";
-                        break;
-                    case 02:
-                        item.SWGroup = "SW1";
-                        break;
-                    case 03:
-                        item.SWGroup = "SW2";
-                        break;
-                    case 04:
-                        item.SWGroup = "SW2";
-                        break;
-                    case 05:
-                        item.SWGroup = "SW3";
-                        break;
-                    case 06:
-                        item.SWGroup = "SW3";
-                        break;
-                    case 07:
-                        item.SWGroup = "SW4";
-                        break;
-                    case 08:
-                        item.SWGroup = "SW4";
-                        break;
-                    case 09:
-                        item.SWGroup = "SW5";
-                        break;
-                    case 10:
-                        item.SWGroup = "SW5";
-                        break;
-                    case 11:
-                        item.SWGroup = "SW6";
-                        break;
-                    case 12:
-                        item.SWGroup = "SW6";
-                        break;
-                    case 13:
-                        item.SWGroup = "SW7";
-                        break;
-                    case 14:
-                        item.SWGroup = "SW7";
-                        break;
+                    for (int i = 0; i < selectNearEnd.Count; i++)
+                    {
+
+                        // TODO check if there is issue
+                        var slctFarEnd = selectFarEnd.Where(x => x.OppIpAddress == selectNearEnd[i].IpAddress).ToList();
+
+                        if (selectNearEnd.Count != slctFarEnd.Count)
+                        {
+                            Console.WriteLine("ddd");
+                        }
+
+                        if (selectNearEnd.Count != slctFarEnd.Count)
+                        {
+                            var dif = selectNearEnd.Count - slctFarEnd.Count;
+
+                            if (dif > 0)
+                            {
+                                var newInstance = new RadioConfItems();
+                                for (int k = 0; k < dif; k++)
+                                {
+                                    slctFarEnd.Add(newInstance);
+                                }
+                            }
+                        }
+
+                        if (slctFarEnd.Count != 0)
+                        {
+
+                            if (i != 0 && selectNearEnd.ElementAtOrDefault(i - 1) != null && selectNearEnd[i].SWGroup == selectNearEnd[i - 1].SWGroup)
+                            {
+                                selectNearEnd[i].OppSWGroup = selectNearEnd[i - 1].OppSWGroup;
+                                selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            }
+                            else
+                            {
+                                selectNearEnd[i].OppSWGroup = !String.IsNullOrEmpty(slctFarEnd[i].SWGroup) ? slctFarEnd[i].SWGroup : "";
+                                selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            }
+
+                            //// get only lists that match 
+                            //if (selectNearEnd.Count == slctFarEnd.Count)
+                            //{
+                            //    selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                            //    selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //}
+                            //else
+                            //{
+                            //    // if item is not the first one Check if previous element exist on the list / if yes continue..
+                            //    if (i != 0 && selectNearEnd.ElementAtOrDefault(i - 1) != null && selectNearEnd[i].SWGroup == selectNearEnd[i - 1].SWGroup)
+                            //    {
+                            //        selectNearEnd[i].OppSWGroup = selectNearEnd[i - 1].OppSWGroup;
+                            //        selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //    }
+
+                            //    else
+                            //    {
+                            //        selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                            //        selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //    }
+
+                            //    Console.WriteLine("Ip: ", selectNearEnd[i].IpAddress, "Opp Ip: ", slctFarEnd[i].IpAddress);
+                            //}
+
+
+
+
+                            //if (i == 0)
+                            //{
+                            //    selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                            //    selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //}
+                            //else if (selectNearEnd[i].SWGroup == selectNearEnd[i - 1].SWGroup)
+                            //{
+                            //    selectNearEnd[i].OppSWGroup = selectNearEnd[i - 1].SWGroup;
+                            //    selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //}
+
+                            //if (slctFarEnd.Count < i)
+                            //{
+                            //    if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i].SWGroup))
+                            //    {
+                            //        selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
+                            //        selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //    }
+
+                            //    if (slctFarEnd.Count < (i + 1))
+                            //    {
+                            //        if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i + 1].SWGroup))
+                            //        {
+                            //            selectNearEnd[i].OppSWGroup = slctFarEnd[i + 1].SWGroup;
+                            //            selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
+                            //        }
+                            //    }
+                            //}
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message, "The code blow ups here!");
+                throw;
+            }
 
-            List<RadioConfItems> selectNearEnd = new List<RadioConfItems>();
-            List<RadioConfItems> selectFarEnd = new List<RadioConfItems>();
-
+            updateRadioConfOnNEList(selectNearEnd);
+            newList = new List<RadioConfItems>();
+        }
+        private void SepareteNearEndFarEndPorts()
+        {
             var selectAdressFromNewlist = newList.Select(y => y.IpAddress).ToList();
-
             try
             {
                 for (int i = 0; i < selectAdressFromNewlist.Distinct().Count(); i++)
@@ -1519,55 +1593,6 @@ namespace LogAnalyzerV2.Services
                 Console.WriteLine("The code blows up here!");
                 throw;
             }
-
-            try
-            {
-                // Defining Opposite SW Groups and ports for near end modems.
-                if (selectFarEnd.Count != 0)
-                {
-                    for (int i = 0; i < selectNearEnd.Count; i++)
-                    {
-                        var slctFarEnd = selectFarEnd.Where(x => x.OppIpAddress == selectNearEnd[i].IpAddress).ToList();
-
-                        if (i == 0)
-                        {
-                            selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
-                            selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
-                        }
-                        else if (selectNearEnd[i].SWGroup == selectNearEnd[i - 1].SWGroup)
-                        {
-                            selectNearEnd[i].OppSWGroup = selectNearEnd[i - 1].SWGroup;
-                            selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
-                        }
-
-                        if (slctFarEnd.Count < i)
-                        {
-                            if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i].SWGroup))
-                            {
-                                selectNearEnd[i].OppSWGroup = slctFarEnd[i].SWGroup;
-                                selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
-                            }
-
-                            if (slctFarEnd.Count < (i + 1))
-                            {
-                                if (selectNearEnd[i - 1] != null && (selectNearEnd[i - 1].OppSWGroup != slctFarEnd[i + 1].SWGroup))
-                                {
-                                    selectNearEnd[i].OppSWGroup = slctFarEnd[i + 1].SWGroup;
-                                    selectNearEnd[i].OppPort = getOppositePort(selectNearEnd[i].OppSWGroup);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message, "The code blow ups here!");
-                throw;
-            }
-
-            updateRadioConfOnNEList(selectNearEnd);
-            newList = new List<RadioConfItems>();
         }
         private void updateRadioConfOnNEList(List<RadioConfItems> selectNearEnd)
         {
@@ -1587,7 +1612,7 @@ namespace LogAnalyzerV2.Services
                             {
                                 if (getintFromString(nearEnditem.OppPort) == getintFromString(item.OppPort) || getintFromString(item.OppPort) == (getintFromString(nearEnditem.OppPort) + 1))
                                 {
-                                    item.OppPortInRadio = nearEnditem.OppPort;
+                                    item.OppPortInRadio = item.OppPort;
                                 }
                                 else { item.OppPortInRadio = nearEnditem.OppPort; }
                             }
@@ -1604,87 +1629,210 @@ namespace LogAnalyzerV2.Services
         }
         private string getOppositePort(string oppPortNum)
         {
-            Regex oppTmp = new Regex(@"\d+");
-            Match oppEndSWValue = oppTmp.Match(oppPortNum);
-
-            switch (int.Parse(oppEndSWValue.Value))
+            if (!String.IsNullOrEmpty(oppPortNum))
             {
-                case 01:
-                    return "MODEM (Slot01)";
-                case 02:
-                    return "MODEM (Slot03)";
-                case 03:
-                    return "MODEM (Slot05)";
-                case 04:
-                    return "MODEM (Slot07)";
-                case 05:
-                    return "MODEM (Slot09)";
-                case 06:
-                    return "MODEM (Slot11)";
-                case 07:
-                    return "MODEM (Slot13)";
-                default:
-                    return "Not Found!";
-            }
-        }
+                Regex oppTmp = new Regex(@"\d+");
+                Match oppEndSWValue = oppTmp.Match(oppPortNum);
 
-        private void MarkCrossConnectedPorts()
+                switch (int.Parse(oppEndSWValue.Value))
+                {
+                    case 01:
+                        return "MODEM (Slot01)";
+                    case 02:
+                        return "MODEM (Slot03)";
+                    case 03:
+                        return "MODEM (Slot05)";
+                    case 04:
+                        return "MODEM (Slot07)";
+                    case 05:
+                        return "MODEM (Slot09)";
+                    case 06:
+                        return "MODEM (Slot11)";
+                    case 07:
+                        return "MODEM (Slot13)";
+                    default:
+                        return "Not Found!";
+                }
+            }
+            else { return ""; }
+        }
+        private void PrepareListForUniqueMatchInOpposite()
         {
             var uniqueIds = missingOpposites.Select(x => x.IP).Distinct();
 
             foreach (var ıds in uniqueIds)
             {
-                // Marking Cross Connected Ports
-                var test = missingOpposites.Where(x => x.IP == ıds).Select(a => new { a.Port, a.OppPortInRadio }).ToList();
-                var nearEndPorts = GetIntListFromStringList(test.Select(p => p.Port).ToList());
-                var farEndPorts = GetIntListFromStringList(test.Select(p => p.OppPortInRadio).ToList());
-                var combine = nearEndPorts.Zip(farEndPorts, (n, f) => new { NearPort = n, FarPort = f });
 
-
-
-
-                if (nearEndPorts != null && farEndPorts != null)
+                if (ıds == "10.102.60.157")
                 {
-                    int tempValue = 0;
-                    int tempOfTemp = 0;
-                    int count = 0;
-                    foreach (var port in combine)
+                    Console.WriteLine("ddd");
+                }
+
+
+                // Marking Cross Connected Ports
+                var getIpDetails = missingOpposites.Where(x => x.IP == ıds).Select(a => new { a.OppIP, a.Port, a.OppPortInRadio }).ToList();
+
+                string temp = "";
+                var getUniqueDetails = new List<MissingOpposite>();
+                foreach (var item in getIpDetails)
+                {
+                    if (String.IsNullOrEmpty(temp))
                     {
-                        if (tempValue != 0 && port.NearPort > tempValue)
-                        {
-                            if (port.FarPort != 100)
-                                tempOfTemp = port.FarPort;
-                        }
+                        temp = item.OppIP;
 
-                        if (count == 0)
+                        var missingOpp = new MissingOpposite()
                         {
-                            if (port.FarPort != 100)
-                            {
-                                tempValue = port.FarPort;
-                            }
-                        }
-                        else if (count >= 1)
-                        {
-                            if (port.FarPort != 100 && port.FarPort < tempValue)
-                            {
-                                var status = missingOpposites.Where(x => x.IP == ıds && x.Port == "MODEM (" + "Slot" + port.NearPort.ToString() + ")").SingleOrDefault();
-                                status.Status = "Cross Connection detected";
-                            }
-                        }
-                        if (port.FarPort != 100)
-                            count++;
+                            Port = item.Port,
+                            OppPort = item.OppPortInRadio != null ? item.OppPortInRadio : ""
+                        };
+                        getUniqueDetails.Add(missingOpp);
 
-                        // This will work when the near and slot become bigger than previous far end slot
-                        if (tempOfTemp != 0)
+                        // if there is only one connection
+                        if (getIpDetails.Count == 1)
                         {
-                            tempValue = tempOfTemp;
-                            tempOfTemp = 0;
+                            MarkCrossConnectedPorts(getUniqueDetails, ıds);
                         }
+                    }
+
+                    else if (!String.IsNullOrEmpty(temp) && item.OppIP == temp)
+                    {
+                        var missingOpp = new MissingOpposite()
+                        {
+                            Port = item.Port,
+                            OppPort = item.OppPortInRadio != null ? item.OppPortInRadio : ""
+                        };
+                        getUniqueDetails.Add(missingOpp);
+                    }
+
+                    else if (!String.IsNullOrEmpty(temp) && item.OppIP != temp)
+                    {
+                        // Bunun anlamı near ıp farklı bir opp Ip ye geçti.
+                        // hazırlanan listeyi kullan crosslara bak!
+                        MarkCrossConnectedPorts(getUniqueDetails, ıds);
+
+                        // listeyi sıfırla
+                        getUniqueDetails = new List<MissingOpposite>();
+
+                        // yeni gelen port ile yeni opposite leri eşleştirmeye başla
+                        var missingOpp = new MissingOpposite()
+                        {
+                            Port = item.Port,
+                            OppPort = item.OppPortInRadio
+                        };
+                        getUniqueDetails.Add(missingOpp);
+                        temp = item.OppIP;
+                    }
+
+                }
+            }
+        }
+        private void DefineSwGroupsByPort()
+        {
+            try
+            {
+                //Defining SW Groups into separete list.
+                foreach (var item in newList)
+                {
+                    switch (int.Parse(item.Port))
+                    {
+                        case 01:
+                            item.SWGroup = "SW1";
+                            break;
+                        case 02:
+                            item.SWGroup = "SW1";
+                            break;
+                        case 03:
+                            item.SWGroup = "SW2";
+                            break;
+                        case 04:
+                            item.SWGroup = "SW2";
+                            break;
+                        case 05:
+                            item.SWGroup = "SW3";
+                            break;
+                        case 06:
+                            item.SWGroup = "SW3";
+                            break;
+                        case 07:
+                            item.SWGroup = "SW4";
+                            break;
+                        case 08:
+                            item.SWGroup = "SW4";
+                            break;
+                        case 09:
+                            item.SWGroup = "SW5";
+                            break;
+                        case 10:
+                            item.SWGroup = "SW5";
+                            break;
+                        case 11:
+                            item.SWGroup = "SW6";
+                            break;
+                        case 12:
+                            item.SWGroup = "SW6";
+                            break;
+                        case 13:
+                            item.SWGroup = "SW7";
+                            break;
+                        case 14:
+                            item.SWGroup = "SW7";
+                            break;
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+        private void MarkCrossConnectedPorts(List<MissingOpposite> getUniqueDetails, string ıds)
+        {
+            //var nearEndPorts = GetIntListFromStringList(getIpDetails.Select(p => p.Port).ToList());
+            //var farEndPorts = GetIntListFromStringList(getIpDetails.Select(p => p.OppPortInRadio).ToList());
+            //var combine = nearEndPorts.Zip(farEndPorts, (n, f) => new { NearPort = n, FarPort = f });
 
+            int tempValue = 0;
+            int tempOfTemp = 0;
+            int count = 0;
+
+            foreach (var port in getUniqueDetails)
+            {
+                if (tempValue != 0 && getintFromString(port.Port) >= tempValue)
+                {
+                    if (getintFromString(port.OppPort) != 100)
+                        tempOfTemp = getintFromString(port.OppPort);
+                }
+
+                if (count == 0)
+                {
+                    if (getintFromString(port.OppPort) != 100)
+                    {
+                        tempValue = getintFromString(port.OppPort);
+                    }
+                }
+                else if (count >= 1)
+                {
+                    if (getintFromString(port.OppPort) != 100 && getintFromString(port.OppPort) < tempValue)
+                    {
+                        //var status = missingOpposites.Where(x => x.IP == ıds && x.Port == "MODEM (" + "Slot" + port.NearPort.ToString("D2") + ")").SingleOrDefault();
+                        var status = missingOpposites.Where(x => x.IP == ıds && x.Port == port.Port).SingleOrDefault();
+                        status.Status = "Cross Connection detected";
+                    }
+                }
+                if (getintFromString(port.OppPort) != 100)
+                    count++;
+
+                // This will work when the near and slot become bigger than previous far end slot
+                if (tempOfTemp != 0)
+                {
+                    tempValue = tempOfTemp;
+                    tempOfTemp = 0;
+                }
+            }
         }
         #endregion
     }
+
+
 }

@@ -623,5 +623,20 @@ namespace LogAnalyzerV2
             OppositeInformationWindow oppWin = new OppositeInformationWindow();
             oppWin.Show();
         }
+
+        private void btnExpCollectionResults_Click(object sender, RoutedEventArgs e)
+        {
+            if (bgWorker.scheduledJobsList.Count != 0)
+            {
+                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\CollectionResults " + DateTime.Now.ToString("yyyy-MM-dd") + ".csv";
+                grdScheduledjobsReportTable.ExportToCsv(loc);
+
+                MessageBox.Show("The list has been generated to Desktop.");
+            }
+            else
+            {
+                MessageBox.Show("Nothing to Export");
+            }
+        }
     }
 }
