@@ -621,12 +621,12 @@ namespace LogAnalyzerV2
         private void Onclick_OppositeInformation(object sender, RoutedEventArgs e)
         {
             OppositeInformationWindow oppWin = new OppositeInformationWindow();
-            oppWin.Show();
+            oppWin.ShowDialog();
         }
 
         private void btnExpCollectionResults_Click(object sender, RoutedEventArgs e)
         {
-            if (bgWorker.scheduledJobsList.Count != 0)
+            if (bgWorker.scheduledJobsList != null && bgWorker.scheduledJobsList.Count != 0)
             {
                 var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\CollectionResults " + DateTime.Now.ToString("yyyy-MM-dd") + ".csv";
                 grdScheduledjobsReportTable.ExportToCsv(loc);

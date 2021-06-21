@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
         mc:Ignorable="d"
-        Title="OppositeInformationWindow" Height="450" Width="800">
+        Title="VAF Opposite Analyzer" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25" />
@@ -14,25 +14,34 @@
         </Grid.RowDefinitions>
         <Button x:Name="btnExpOppList" Grid.Row="0" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpOppList_Click" />
         <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="1">
+            <dxg:GridControl.Bands>
+                <dxg:GridControlBand Header="Result">
+                    <dxg:GridColumn FieldName="Status"/>
+                    <dxg:GridColumn FieldName="Date"/>
+                </dxg:GridControlBand>
+                <dxg:GridControlBand Header="NE List Data">
+                    <dxg:GridColumn FieldName="NEType"/>
+                    <dxg:GridColumn FieldName="IP"/>
+                    <dxg:GridColumn FieldName="OppIP"/>
+                    <dxg:GridColumn FieldName="Port"/>
+                    <dxg:GridColumn FieldName="OppPort"/>
+                </dxg:GridControlBand>
+                <dxg:GridControlBand Header="Radio Configuration">
+                    <dxg:GridColumn FieldName="OppPortInRadio"/>
+                </dxg:GridControlBand>
+                <dxg:GridControlBand Header="Rmon Data">
+                    <dxg:GridColumn FieldName="OppIpInRmon"/>
+                    <dxg:GridColumn FieldName="OppPortInRmon"/>
+                    <dxg:GridColumn FieldName="GroupMember"/>
+                    <dxg:GridColumn FieldName="OppGroupMember"/>
+                    <dxg:GridColumn FieldName="HasRmon"/>
+                    <dxg:GridColumn FieldName="IsMatch"/>
+                </dxg:GridControlBand>
+            </dxg:GridControl.Bands>
             <dxg:GridControl.View>
                 <dxg:TableView x:Name="grdMissingOppListTable" AutoWidth="False" GroupSummaryDisplayMode="AlignByColumns"/>
             </dxg:GridControl.View>
-            <dxg:GridColumn FieldName="Status"/>
-            <dxg:GridColumn FieldName="Date"/>
-            <dxg:GridColumn FieldName="NEType"/>
-            <dxg:GridColumn FieldName="IP"/>
-            <dxg:GridColumn FieldName="OppIP"/>
-            <dxg:GridColumn FieldName="Port"/>
-            <dxg:GridColumn FieldName="OppPort"/>
-            <dxg:GridColumn FieldName="OppPortInRadio"/>
-            <dxg:GridColumn FieldName="OppIpInRmon"/>
-            <dxg:GridColumn FieldName="OppPortInRmon"/>
-            <dxg:GridColumn FieldName="GroupMember"/>
-            <dxg:GridColumn FieldName="OppGroupMember"/>
-            <dxg:GridColumn FieldName="HasRmon"/>
-            <dxg:GridColumn FieldName="IsMatch"/>
         </dxg:GridControl>
-        
         <Button x:Name="btnCheckOpposite" Grid.Row="2" Content="CheckOpposite" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,0,5,0" Click="btnCheckOpposite_Click" />
         <ProgressBar x:Name="MissingOppProgressBar" Grid.Row="2" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,5,5,5" />
         <Label x:Name="lblMissingOppPercentage" Grid.Row="2" Width="150" Height="22" Margin="220,8,372,7" HorizontalAlignment="Left" />

@@ -17,19 +17,19 @@ namespace LogAnalyzerV2.Services
 {
     internal class CollectionAnalyzerBase
     {
-        // Insert Transfer files......
-        public List<TransferItems> transferItems;
-        public bool IsFileTransferEnabled = false;
-
-        // Insert all the logs based on type into one big list.
+        // For log analyzer section
         public List<string> logList;
         public List<string> NEList;
         public List<string> RmonData;
         public List<string> RadioConfData;
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
-        public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
+        // Insert Transfer files......
+        public List<TransferItems> transferItems;
+        public bool IsFileTransferEnabled = false;
 
+        // For missing far end section
+        public List<MissingOpposite> missingOpposites = new List<MissingOpposite>();
         List<RmonItems> RmonItems;
         List<string> RmonIndexLoc;
         List<RadioConfItems> RadioConfigurationItems;
@@ -63,18 +63,14 @@ namespace LogAnalyzerV2.Services
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
         }
+
+        // For Missing far end section
         private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             missingOpposites = new List<MissingOpposite>();
-
+           
             // Get the first list of NEs to proceed further
             AnalyzeNEList(max, result, counter, e, bw);
-
-            //Get the opposite information from NE list.
-            AnalyzeNEListForOpposite(max, result, counter, e, bw);
-            AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
-            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
-            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
         }
         private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -172,11 +168,10 @@ namespace LogAnalyzerV2.Services
                 NeType = "";
                 NeListOppIps.Clear();
             }
-
             //Adding counts to progress bar
             max += missingOpposites.Count();
 
-
+            AnalyzeNEListForOpposite(max, result, counter, e, bw);
         }
         private void AnalyzeNEListForOpposite(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -193,7 +188,7 @@ namespace LogAnalyzerV2.Services
                 bw.ReportProgress(progressPercentage);
                 e.Result = result;
 
-                if(Ip == "10.25.46.5")
+                if (Ip == "10.25.46.5")
                 {
                     Console.WriteLine("Here");
                 }
@@ -230,7 +225,7 @@ namespace LogAnalyzerV2.Services
                     }
                 }
             }
-
+            AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
         }
         private void AnalyzeRadioConfigurationInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -329,6 +324,7 @@ namespace LogAnalyzerV2.Services
                     }
                 }
             }
+            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
         }
         private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -440,6 +436,7 @@ namespace LogAnalyzerV2.Services
                     }
                 }
             }
+            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
         }
         private void UpdatingTheListWithRmonFile(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
@@ -1096,6 +1093,78 @@ namespace LogAnalyzerV2.Services
 
             return str.ToUpper();
         }
+        private string[] MakeLineProper(string line)
+        {
+            var WordsArray = string.Join(" ", line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
+                                                                       .Select(i => i.Trim())).Split(',');
+            return WordsArray;
+        }
+        public virtual bool IsFileLocked(FileInfo file)
+        {
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+
+            //file is not locked
+            return false;
+        }
+        private List<int> GetIntListFromStringList(List<string> stringValue)
+        {
+            var numbers = new List<int>();
+            foreach (var item in stringValue)
+            {
+                Regex num = new Regex(@"\d+");
+                if (item == null)
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else if (item == "Not Available")
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else if (String.IsNullOrEmpty(item))
+                {
+                    Match portNum = num.Match("100");
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+                else
+                {
+                    Match portNum = num.Match(item);
+                    numbers.Add(int.Parse(portNum.Value));
+                }
+            }
+            return numbers;
+        }
+        private int getintFromString(string str)
+        {
+            Regex num = new Regex(@"\d+");
+            Match portNum = num.Match(str);
+
+            int a;
+            if (int.TryParse(portNum.Value, out a))
+            {
+                return int.Parse(portNum.Value);
+            }
+            else { return -1; }
+        }
+        
+        #endregion
+
+        #region LogAnalyzer Section
         protected dynamic PopulateDatas()
         {
             // Prepare list of summary data
@@ -1247,7 +1316,6 @@ namespace LogAnalyzerV2.Services
                                                             .ToList();
             return colSumList;
         }
-
         // This method filters VAF Sessions from whole collection.
         public List<ServiceSession> serviceSessions(string serverIp, string colType)
         {
@@ -1304,74 +1372,9 @@ namespace LogAnalyzerV2.Services
                 return null;
             }
         }
-        private string[] MakeLineProper(string line)
-        {
-            var WordsArray = string.Join(" ", line.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
-                                                                       .Select(i => i.Trim())).Split(',');
-            return WordsArray;
-        }
-        public virtual bool IsFileLocked(FileInfo file)
-        {
-            try
-            {
-                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    stream.Close();
-                }
-            }
-            catch (IOException)
-            {
-                //the file is unavailable because it is:
-                //still being written to
-                //or being processed by another thread
-                //or does not exist (has already been processed)
-                return true;
-            }
+        #endregion
 
-            //file is not locked
-            return false;
-        }
-        private List<int> GetIntListFromStringList(List<string> stringValue)
-        {
-            var numbers = new List<int>();
-            foreach (var item in stringValue)
-            {
-                Regex num = new Regex(@"\d+");
-                if (item == null)
-                {
-                    Match portNum = num.Match("100");
-                    numbers.Add(int.Parse(portNum.Value));
-                }
-                else if (item == "Not Available")
-                {
-                    Match portNum = num.Match("100");
-                    numbers.Add(int.Parse(portNum.Value));
-                }
-                else if (String.IsNullOrEmpty(item))
-                {
-                    Match portNum = num.Match("100");
-                    numbers.Add(int.Parse(portNum.Value));
-                }
-                else
-                {
-                    Match portNum = num.Match(item);
-                    numbers.Add(int.Parse(portNum.Value));
-                }
-            }
-            return numbers;
-        }
-        private int getintFromString(string str)
-        {
-            Regex num = new Regex(@"\d+");
-            Match portNum = num.Match(str);
-
-            int a;
-            if (int.TryParse(portNum.Value, out a))
-            {
-                return int.Parse(portNum.Value);
-            }
-            else { return -1; }
-        }
+        #region Missing FarEnd Section
         private void InsertRadioConfDataToNEList(MissingOpposite preparedNEListItems, bool islast)
         {
             //Updating Prepared Nelist with Radio Configuration data.
@@ -1662,13 +1665,6 @@ namespace LogAnalyzerV2.Services
 
             foreach (var ıds in uniqueIds)
             {
-
-                if (ıds == "10.102.60.157")
-                {
-                    Console.WriteLine("ddd");
-                }
-
-
                 // Marking Cross Connected Ports
                 var getIpDetails = missingOpposites.Where(x => x.IP == ıds).Select(a => new { a.OppIP, a.Port, a.OppPortInRadio }).ToList();
 
@@ -1722,7 +1718,6 @@ namespace LogAnalyzerV2.Services
                         getUniqueDetails.Add(missingOpp);
                         temp = item.OppIP;
                     }
-
                 }
             }
         }
@@ -1788,10 +1783,6 @@ namespace LogAnalyzerV2.Services
         }
         private void MarkCrossConnectedPorts(List<MissingOpposite> getUniqueDetails, string ıds)
         {
-            //var nearEndPorts = GetIntListFromStringList(getIpDetails.Select(p => p.Port).ToList());
-            //var farEndPorts = GetIntListFromStringList(getIpDetails.Select(p => p.OppPortInRadio).ToList());
-            //var combine = nearEndPorts.Zip(farEndPorts, (n, f) => new { NearPort = n, FarPort = f });
-
             int tempValue = 0;
             int tempOfTemp = 0;
             int count = 0;
@@ -1833,6 +1824,4 @@ namespace LogAnalyzerV2.Services
         }
         #endregion
     }
-
-
 }
