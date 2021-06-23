@@ -99,6 +99,13 @@ namespace LogAnalyzerV2
                     bgWorker.logList.AddRange(list.ToList());
                 }
                 progressBarItemCount = count;
+
+                //TODO:Daha sonra bak.
+                //foreach (var line in File.ReadLines(path))
+                //{
+                //    count++;
+                //    bgWorker.logList.Add(line);
+                //}
             }
 
             bgWorker.worker.RunWorkerAsync(progressBarItemCount);
