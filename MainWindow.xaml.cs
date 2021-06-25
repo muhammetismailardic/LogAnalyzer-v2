@@ -25,6 +25,7 @@ namespace LogAnalyzerV2
     public partial class MainWindow : Window
     {
         private BGWorker bgWorker;
+        public static string test;
         OppositeInformationWindow oppositeInformation;
         private List<string> cmbSessionList;
         private string serviceIp;
@@ -47,23 +48,15 @@ namespace LogAnalyzerV2
         #region tools
         private void uploadFiles()
         {
-            int progressBarItemCount = 0;
-
             ClearComboBoxes();
-
             // Wipe out data
             grdDailyColReports.ItemsSource = null;
-
             // Wipe out bands
             grdDailyColReports.Bands.Clear();
-
             // Wipe out list
             grdAgentFileTransfer.ItemsSource = null;
 
-
             // Deletes previous result from memory
-
-            bgWorker.logList = new List<string>();
             bgWorker.scheduledJobsList = new List<CollectionItem>();
             bgWorker.ServerAgentTable = new List<ServerAgentCollection>();
 
@@ -79,36 +72,7 @@ namespace LogAnalyzerV2
                 bgWorker.IsFileTransferEnabled = false;
             }
 
-            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "LOG | *.log;", // file types, that will be allowed to upload
-                Multiselect = true // allow / deny user to upload more than one file at a time
-            };
-
-            // Display OpenFileDialog by calling ShowDialog method
-            bool? result = dialog.ShowDialog();
-
-            if (result == true) // if user clicked OK
-            {
-                int count = 0;
-                // Read the files
-                foreach (string path in dialog.FileNames)
-                {
-                    var list = File.ReadAllLines(path);
-                    count += list.Count();
-                    bgWorker.logList.AddRange(list.ToList());
-                }
-                progressBarItemCount = count;
-
-                //TODO:Daha sonra bak.
-                //foreach (var line in File.ReadLines(path))
-                //{
-                //    count++;
-                //    bgWorker.logList.Add(line);
-                //}
-            }
-
-            bgWorker.worker.RunWorkerAsync(progressBarItemCount);
+            bgWorker.worker.RunWorkerAsync(bgWorker.SelectFileToProceed());
         }
         private void ClearComboBoxes()
         {

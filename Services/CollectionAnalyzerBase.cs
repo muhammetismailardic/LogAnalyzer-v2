@@ -17,8 +17,9 @@ namespace LogAnalyzerV2.Services
 {
     internal class CollectionAnalyzerBase
     {
+        private Microsoft.Win32.OpenFileDialog dialog;
+
         // For log analyzer section
-        public List<string> logList;
         public List<string> NEList;
         public List<string> RmonData;
         public List<string> RadioConfData;
@@ -54,11 +55,30 @@ namespace LogAnalyzerV2.Services
             int result = 0;
             int counter = 0;
 
-            if (logList != null && logList.Count != 0)
+            if (dialog != null)
             {
-                AnalyzeLog(max, result, counter, e, bw);
+                foreach (string path in dialog.FileNames)
+                {
+                    foreach (var line in File.ReadLines(path))
+                    {
+                        counter++;
+                        if (!String.IsNullOrEmpty(line))
+                        {
+                            int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                            if (counter % 42 == 0)
+                            {
+                                result++;
+                                bw.ReportProgress(progressPercentage);
+                            }
+                            e.Result = result;
+
+                            AnalyzeLog(line);
+                        }
+                    }
+                }
             }
-            else if (NEList != null && NEList.Count != 0 && RmonData != null && RmonData.Count != 0 && RadioConfData != null && RadioConfData.Count != 0)
+
+            if (NEList != null && NEList.Count != 0 && RmonData != null && RmonData.Count != 0 && RadioConfData != null && RadioConfData.Count != 0)
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
@@ -68,7 +88,7 @@ namespace LogAnalyzerV2.Services
         private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
         {
             missingOpposites = new List<MissingOpposite>();
-           
+
             // Get the first list of NEs to proceed further
             AnalyzeNEList(max, result, counter, e, bw);
         }
@@ -535,32 +555,19 @@ namespace LogAnalyzerV2.Services
         }
 
         // For Log Analyzer
-        private void AnalyzeLog(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        private void AnalyzeLog(string readLogFile)
         {
-            foreach (string line in logList)
+            if (!string.IsNullOrWhiteSpace(readLogFile))
             {
-                if (!string.IsNullOrWhiteSpace(line))
+                if (readLogFile.Contains("UNMS VAF Module Service"))
                 {
-                    counter++;
-                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                    if (counter % 42 == 0)
-                    {
-                        result++;
-                        bw.ReportProgress(progressPercentage);
-                    }
-
-                    if (line.Contains("UNMS VAF Module Service"))
-                    {
-                        VAFServerCollection(line);
-                    }
-
-                    else if (line.Contains("UNMS VAF Module Agent"))
-                    {
-                        VAFAgentCollection(line);
-                    }
-                    e.Result = result;
+                    VAFServerCollection(readLogFile);
                 }
+                else if (readLogFile.Contains("UNMS VAF Module Agent"))
+                {
+                    VAFAgentCollection(readLogFile);
+                }
+                
             }
         }
         private void VAFServerCollection(string line)
@@ -578,7 +585,6 @@ namespace LogAnalyzerV2.Services
                     {
                         ServerAgentTable.Add(new ServerAgentCollection { ServerId = serverIp, AgentId = agentIp });
                     }
-
                 }
 
                 else if (line.Contains("Historical PMON/RMON Data Collection") == true ||
@@ -1077,6 +1083,27 @@ namespace LogAnalyzerV2.Services
             scheduledJobsList.Remove(updateLine);
             scheduledJobsList.Add(list);
         }
+        public int SelectFileToProceed()
+        {
+            int count = 0;
+            dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "LOG | *.log;", // file types, that will be allowed to upload
+                Multiselect = true // allow / deny user to upload more than one file at a time
+            };
+            // Display OpenFileDialog by calling ShowDialog method
+            bool? result = dialog.ShowDialog();
+
+            if (result == true) // if user clicked OK
+            {
+                // Read the files
+                foreach (string path in dialog.FileNames)
+                {
+                    count +=File.ReadLines(path).Count();
+                }
+            }
+            return count;
+        }
 
         #region tools
         private bool inBounds(int index, string[] array)
@@ -1161,7 +1188,7 @@ namespace LogAnalyzerV2.Services
             }
             else { return -1; }
         }
-        
+
         #endregion
 
         #region LogAnalyzer Section
