@@ -306,4 +306,3 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.application
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.CopyComplete
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.exe
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.pdb
-D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csprojAssemblyReference.cache
