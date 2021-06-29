@@ -103,7 +103,7 @@ namespace LogAnalyzerV2
 
                         grdDailyColReports.BeginDataUpdate();
 
-                        var serverIps = collections.Select(serverIp => serverIp.ServerId).Distinct().ToList();
+                        var serverIps = collections.Where(IsServerIp => IsServerIp.Type == true).Select(s=> s.ServerIp).Distinct().ToList();
 
                         int bannerCount = 0;
                         for (int i = 0; i < 1; i++)
@@ -144,7 +144,7 @@ namespace LogAnalyzerV2
 
                             grdDailyColReports.Bands.Add(banners);
 
-                            var AgentIps = collections.Where(s => s.ServerId == serverIps.ElementAt(i).ToString()).Select(a => a.AgentId).OrderBy(x => x).ToList();
+                            var AgentIps = collections.Where(x => x.Type == false).Select(a => a.ServerIp).OrderBy(x => x).ToList();
 
                             for (int j = 0; j < AgentIps.Count(); j++)
                             {
@@ -210,10 +210,10 @@ namespace LogAnalyzerV2
 
             if (selectedVAFServer != null)
             {
-                if (bgWorker.ServerAgentTable.Where(s => s.ServerId == selectedVAFServer).Select(s => s.AgentId).Count() > 0)
+                if (bgWorker.ServerAgentTable.Where(s => s.Type == false).Select(s => s.ServerIp).Count() > 0)
                 {
                     // It will display the related Agents
-                    cmbVSVAFAgents.ItemsSource = bgWorker.ServerAgentTable.Where(s => s.ServerId == selectedVAFServer).Select(s => s.AgentId).OrderBy(x => x).ToList();
+                    cmbVSVAFAgents.ItemsSource = bgWorker.ServerAgentTable.Where(s => s.Type == false).Select(s => s.ServerIp).OrderBy(x => x).ToList();
                 }
 
                 else
@@ -228,7 +228,6 @@ namespace LogAnalyzerV2
                     MessageBox.Show("Server: " + selectedVAFServer + " does not have any session to display.", "Log Analyzer VAF Service" + selectedVAFServer);
                     grdSessionReport.ItemsSource = null;
                 }
-
                 else
                 {
                     grdSessionReport.ItemsSource = serviceSessions;
@@ -313,10 +312,10 @@ namespace LogAnalyzerV2
 
             if (selectedVAFServer != null)
             {
-                if (bgWorker.ServerAgentTable.Where(s => s.ServerId == selectedVAFServer).Select(s => s.AgentId).Count() > 0)
+                if (bgWorker.ServerAgentTable.Where(s => s.Type == false).Select(s => s.ServerIp).Count() > 0)
                 {
                     // It will display the related Agents
-                    cmbCSVAFAgents.ItemsSource = bgWorker.ServerAgentTable.Where(s => s.ServerId == selectedVAFServer).Select(s => s.AgentId).OrderBy(x => x).ToList();
+                    cmbCSVAFAgents.ItemsSource = bgWorker.ServerAgentTable.Where(s => s.Type == false).Select(s => s.ServerIp).OrderBy(x => x).ToList();
                 }
 
                 else

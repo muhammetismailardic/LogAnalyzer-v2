@@ -8,7 +8,7 @@ namespace LogAnalyzerV2.Models
 {
     public class ServerAgentCollection
     {
-        public string ServerId { get; set; }
-        public string AgentId { get; set; }
+        public bool Type { get; set; }
+        public string ServerIp { get; set; }
     }
 }

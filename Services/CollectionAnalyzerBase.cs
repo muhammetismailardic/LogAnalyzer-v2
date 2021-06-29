@@ -17,7 +17,7 @@ namespace LogAnalyzerV2.Services
 {
     internal class CollectionAnalyzerBase
     {
-        private Microsoft.Win32.OpenFileDialog dialog;
+        private Microsoft.Win32.OpenFileDialog CollectionStatusDialog;
 
         // For log analyzer section
         public List<string> NEList;
@@ -43,7 +43,7 @@ namespace LogAnalyzerV2.Services
         string tempPort = String.Empty;
         private int rmonLineCount = 0;
         private string[] properLine;
-        private string collectionType, items;
+        private string collectionType, items, serverIp;
 
         // For RadioConfiguration
         List<RadioConfItems> selectNearEnd = new List<RadioConfItems>();
@@ -55,10 +55,12 @@ namespace LogAnalyzerV2.Services
             int result = 0;
             int counter = 0;
 
-            if (dialog != null)
+            if (CollectionStatusDialog != null)
             {
-                foreach (string path in dialog.FileNames)
+                foreach (string path in CollectionStatusDialog.FileNames)
                 {
+                    PrepareRelationFromFiles(path);
+
                     foreach (var line in File.ReadLines(path))
                     {
                         counter++;
@@ -81,6 +83,29 @@ namespace LogAnalyzerV2.Services
             if (NEList != null && NEList.Count != 0 && RmonData != null && RmonData.Count != 0 && RadioConfData != null && RadioConfData.Count != 0)
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
+            }
+        }
+
+        private void PrepareRelationFromFiles(string path)
+        {
+            string secondLine = File.ReadLines(path).ElementAtOrDefault(1);
+
+            if (secondLine.Contains("UNMS VAF Module Service"))
+            {
+                serverIp = secondLine.Split(',')[2];
+                if (!ServerAgentTable.Any(a => a.ServerIp == serverIp))
+                {
+                    ServerAgentTable.Add(new ServerAgentCollection { Type = true, ServerIp = serverIp });
+                }
+
+            }
+            else if (secondLine.Contains("UNMS VAF Module Agent"))
+            {
+                string agentIp = secondLine.Split(',')[2];
+                if (!ServerAgentTable.Any(a => a.ServerIp == agentIp))
+                {
+                    ServerAgentTable.Add(new ServerAgentCollection { Type = false, ServerIp = agentIp });
+                }
             }
         }
 
@@ -567,7 +592,7 @@ namespace LogAnalyzerV2.Services
                 {
                     VAFAgentCollection(readLogFile);
                 }
-                
+
             }
         }
         private void VAFServerCollection(string line)
@@ -575,22 +600,22 @@ namespace LogAnalyzerV2.Services
             if (!line.Contains("UNMS VAF Module Service,An agent service stopped and started again")
                 && !line.Contains("UNMS VAF Module Service,An agent service started to work during the job is in progress."))
             {
-                if (line.Contains("config file"))
-                {
-                    var serverIp = line.Split(',')[2];
-                    var agentIp = line.Split(',')[4];
-                    agentIp = agentIp.Split('(', ')')[1];
+                //if (line.Contains("config file"))
+                //{
+                //    var serverIp = line.Split(',')[2];
+                //    var agentIp = line.Split(',')[4];
+                //    agentIp = agentIp.Split('(', ')')[1];
 
-                    if (!ServerAgentTable.Any(a => a.AgentId == agentIp))
-                    {
-                        ServerAgentTable.Add(new ServerAgentCollection { ServerId = serverIp, AgentId = agentIp });
-                    }
-                }
+                //    if (!ServerAgentTable.Any(a => a.AgentId == agentIp))
+                //    {
+                //        ServerAgentTable.Add(new ServerAgentCollection { ServerId = serverIp, AgentId = agentIp });
+                //    }
+                //}
 
-                else if (line.Contains("Historical PMON/RMON Data Collection") == true ||
-                         line.Contains("Actual PMON/RMON Data Collection") == true ||
-                         line.Contains("Historical PMON/RMON Data Transfer") == true ||
-                         line.Contains("Actual PMON/RMON Data Transfer") == true)
+                if (line.Contains("Historical PMON/RMON Data Collection") == true ||
+                        line.Contains("Actual PMON/RMON Data Collection") == true ||
+                        line.Contains("Historical PMON/RMON Data Transfer") == true ||
+                        line.Contains("Actual PMON/RMON Data Transfer") == true)
                 {
                     if (!line.Contains("Data Collection could not be perfermed on some Agents"))
                     {
@@ -1086,20 +1111,20 @@ namespace LogAnalyzerV2.Services
         public int SelectFileToProceed()
         {
             int count = 0;
-            dialog = new Microsoft.Win32.OpenFileDialog
+            CollectionStatusDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "LOG | *.log;", // file types, that will be allowed to upload
                 Multiselect = true // allow / deny user to upload more than one file at a time
             };
             // Display OpenFileDialog by calling ShowDialog method
-            bool? result = dialog.ShowDialog();
+            bool? result = CollectionStatusDialog.ShowDialog();
 
             if (result == true) // if user clicked OK
             {
                 // Read the files
-                foreach (string path in dialog.FileNames)
+                foreach (string path in CollectionStatusDialog.FileNames)
                 {
-                    count +=File.ReadLines(path).Count();
+                    count += File.ReadLines(path).Count();
                 }
             }
             return count;
@@ -1201,8 +1226,8 @@ namespace LogAnalyzerV2.Services
             var serverDataList = new List<CollectionItem>();
             var agentIps = new List<string>();
 
-            serverIps = ServerAgentTable.Select(serverIp => serverIp.ServerId).Distinct().ToList();
-            agentIps = ServerAgentTable.Where(s => s.ServerId == serverIps.ElementAt(0).ToString()).Select(a => a.AgentId).OrderBy(x => x).ToList();
+            serverIps = ServerAgentTable.Where(x => x.Type == true).Select(serverIp => serverIp.ServerIp).ToList();
+            agentIps = ServerAgentTable.Where(x => x.Type == false).Select(a => a.ServerIp).OrderBy(x => x).ToList();
 
             if (serverIps.Count != 0 && agentIps.Count != 0)
             {
@@ -1287,9 +1312,9 @@ namespace LogAnalyzerV2.Services
 
                                         else
                                         {
-                                            oneLine["Started_" + (j + 1)] = "*Not Available";
-                                            oneLine["Completed_" + (j + 1)] = "*Not Available";
-                                            oneLine["Duration_" + (j + 1)] = "*Not Available";
+                                            oneLine["Started_" + (j + 1)] = "*";
+                                            oneLine["Completed_" + (j + 1)] = "*";
+                                            oneLine["Duration_" + (j + 1)] = "*";
                                         }
                                     }
                                     catch (Exception ex)
@@ -1297,22 +1322,20 @@ namespace LogAnalyzerV2.Services
                                         Console.WriteLine("An error occured while summary table being generated.", ex);
                                     }
                                 }
-
                                 else
                                 {
-                                    oneLine["Started_" + (j + 1)] = "Not Available";
-                                    oneLine["Completed_" + (j + 1)] = "Not Available";
-                                    oneLine["Duration_" + (j + 1)] = "Not Available";
+                                    oneLine["Started_" + (j + 1)] = "*";
+                                    oneLine["Completed_" + (j + 1)] = "*";
+                                    oneLine["Duration_" + (j + 1)] = "*";
                                 }
                             }
-
                             else
                             {
-                                oneLine["Completed_0"] = "Not Available";
-                                oneLine["Duration_0"] = "Not Available";
-                                oneLine["Started_" + (j + 1)] = "Not Available";
-                                oneLine["Completed_" + (j + 1)] = "Not Available";
-                                oneLine["Duration_" + (j + 1)] = "Not Available";
+                                oneLine["Completed_0"] = "*";
+                                oneLine["Duration_0"] = "*";
+                                oneLine["Started_" + (j + 1)] = "*";
+                                oneLine["Completed_" + (j + 1)] = "*";
+                                oneLine["Duration_" + (j + 1)] = "*";
                             }
                         }
 

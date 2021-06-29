@@ -152,3 +152,4 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Release\LogAnalyzerV2.application
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Release\LogAnalyzerV2.csproj.CopyComplete
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Release\LogAnalyzerV2.exe
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Release\LogAnalyzerV2.pdb
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Release\LogAnalyzerV2.csprojAssemblyReference.cache
