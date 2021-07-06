@@ -141,9 +141,8 @@ namespace LogAnalyzerV2
         {
             if (bgWorker.missingOpposites.Count != 0)
             {
-                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\MissingOpposites " + DateTime.Now.ToString("yyyy-MM-dd") + ".csv";
-                grdMissingOppListTable.ExportToCsv(loc);
-
+                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\MissingOpposites " + DateTime.Now.ToString("yyyy-MM-dd") + ".xlsx";
+                grdMissingOppListTable.ExportToXlsx(loc);
                 MessageBox.Show("The list has been generated to Desktop.");
             }
             else

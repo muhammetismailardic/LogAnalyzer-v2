@@ -914,13 +914,14 @@ namespace LogAnalyzerV2.Services
                     findSendItem = line.Substring(index, line.Length - index);
                 }
 
+                DateTime tempDate = new DateTime();
                 TransferItems transferItem = new TransferItems
                 {
                     Ip = properLine[2],
                     TransferType = findType,
                     FileName = properLine[4].Substring(properLine[4].LastIndexOf(':') + 1),
                     Date = properLine[0],
-                    Started = DateTime.Parse(properLine[0]),
+                    Started = tempDate.Add(DateTime.Parse(properLine[0]).TimeOfDay),
                     Completed = "Not Available",
                     SendItem = findSendItem
                 };
@@ -969,7 +970,7 @@ namespace LogAnalyzerV2.Services
                                                              x.Completed == "Not Available");
                     if (value != null)
                     {
-                        value.Completed = DateTime.Parse(properLine[0]).ToString();
+                        value.Completed = DateTime.Parse(properLine[0]).ToString("HH: mm:ss");
                         value.Duration = DateTime.Parse(value.Completed).Subtract(value.Started);
                     }
                 }
@@ -1242,9 +1243,12 @@ namespace LogAnalyzerV2.Services
 
                         try
                         {
+                            DateTime completed = serverDataList[i].Completed ?? DateTime.MinValue;
+
                             oneLine["CollectionType"] = serverDataList[i].CollectionType.ToString();
-                            oneLine["Started_0"] = serverDataList[i].Started.ToString();
-                            oneLine["Completed_0"] = serverDataList[i].Completed.ToString();
+                            oneLine["Date_0"] = serverDataList[i].Date.ToString("MM/dd/yyyy");
+                            oneLine["Started_0"] = serverDataList[i].Started.ToString("HH:mm:ss");
+                            oneLine["Completed_0"] = completed.ToString("HH:mm:ss");
                             oneLine["Duration_0"] = serverDataList[i].Duration;
                         }
                         catch (Exception ex)
@@ -1305,13 +1309,17 @@ namespace LogAnalyzerV2.Services
                                     {
                                         if (oneAgentData.Count() != 0 && oneAgentData != null)
                                         {
-                                            oneLine["Started_" + (j + 1)] = oneAgentData.FirstOrDefault().Started.ToString();
-                                            oneLine["Completed_" + (j + 1)] = oneAgentData.FirstOrDefault().Completed.ToString();
+                                            DateTime completed = oneAgentData.FirstOrDefault().Completed ?? DateTime.MinValue;
+
+                                            oneLine["Date_" + (j + 1)] = oneAgentData.FirstOrDefault().Date.ToString("MM/dd/yyyy");
+                                            oneLine["Started_" + (j + 1)] = oneAgentData.FirstOrDefault().Started.ToString("HH:mm:ss");
+                                            oneLine["Completed_" + (j + 1)] = completed.ToString("HH:mm:ss");
                                             oneLine["Duration_" + (j + 1)] = oneAgentData.FirstOrDefault().Duration;
                                         }
 
                                         else
                                         {
+                                            oneLine["Date_" + (j + 1)] = "*";
                                             oneLine["Started_" + (j + 1)] = "*";
                                             oneLine["Completed_" + (j + 1)] = "*";
                                             oneLine["Duration_" + (j + 1)] = "*";
@@ -1324,6 +1332,7 @@ namespace LogAnalyzerV2.Services
                                 }
                                 else
                                 {
+                                    oneLine["Date_" + (j + 1)] = "*";
                                     oneLine["Started_" + (j + 1)] = "*";
                                     oneLine["Completed_" + (j + 1)] = "*";
                                     oneLine["Duration_" + (j + 1)] = "*";
@@ -1331,8 +1340,11 @@ namespace LogAnalyzerV2.Services
                             }
                             else
                             {
+                                oneLine["Date_0"] = "*";
+                                oneLine["Started_0"] = "*";
                                 oneLine["Completed_0"] = "*";
                                 oneLine["Duration_0"] = "*";
+                                oneLine["Date_"+ (j + 1)] = "*";
                                 oneLine["Started_" + (j + 1)] = "*";
                                 oneLine["Completed_" + (j + 1)] = "*";
                                 oneLine["Duration_" + (j + 1)] = "*";
@@ -1354,16 +1366,15 @@ namespace LogAnalyzerV2.Services
         private List<CollectionItem> SummaryList()
         {
             // get data for summary collection tab
-            var colSumList = scheduledJobsList.Where(x => x.CollectionType != "Metering Collection"
-                                                            && x.CollectionType != "Actual Data Collection"
-                                                            && x.CollectionType != "Actual Data Transfer"
-                                                            && x.CollectionType != "History Backup"
-                                                            && x.CollectionType != "Inventory Mergining"
-                                                            && x.CollectionType != "Provisioning Mergining"
-                                                            && x.CollectionType != "Historical Data Transfer"
-                                                            && x.CollectionType != "VAF Agent Session"
-                                                            && x.CollectionType != "VAF Service Session")
-                                                            .ToList();
+            var colSumList = scheduledJobsList.Where(x => x.CollectionType != "Actual PMON/RMON Data Transfer"
+                                                        && x.CollectionType != "History Backup"
+                                                        && x.CollectionType != "Inventory Mergining"
+                                                        && x.CollectionType != "Provisioning Mergining"
+                                                        && x.CollectionType != "Historical Data Transfer"
+                                                        && x.CollectionType != "VAF Agent Session"
+                                                        && x.CollectionType != "VAF Service Session"
+                                                        && x.CollectionType != "Network Health")
+                                                        .ToList();
             return colSumList;
         }
         // This method filters VAF Sessions from whole collection.

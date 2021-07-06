@@ -25,8 +25,8 @@ namespace LogAnalyzerV2
     public partial class MainWindow : Window
     {
         private BGWorker bgWorker;
-        public static string test;
-        OppositeInformationWindow oppositeInformation;
+        private OppositeInformationWindow oppositeInformation;
+        
         private List<string> cmbSessionList;
         private string serviceIp;
 
@@ -90,20 +90,20 @@ namespace LogAnalyzerV2
         #endregion
 
         #region GridPopulation
-        public void PopulateGrid(List<ServerAgentCollection> collections, List<CollectionItem> colSum)
+        public void PopulateGrid(List<ServerAgentCollection> serverAgentRelationTable, List<CollectionItem> colSum)
         {
             try
             {
                 if (colSum.Count != 0)
                 {
-                    if (collections != null || collections.Count != 0)
+                    if (serverAgentRelationTable != null || serverAgentRelationTable.Count != 0)
                     {
                         GridControlBand banners = null;
                         GridColumn items = null;
 
                         grdDailyColReports.BeginDataUpdate();
 
-                        var serverIps = collections.Where(IsServerIp => IsServerIp.Type == true).Select(s=> s.ServerIp).Distinct().ToList();
+                        var serverIps = serverAgentRelationTable.Where(IsServerIp => IsServerIp.Type == true).Select(s => s.ServerIp).Distinct().ToList();
 
                         int bannerCount = 0;
                         for (int i = 0; i < 1; i++)
@@ -128,6 +128,11 @@ namespace LogAnalyzerV2
                             banners.Header = String.Format("VAF Server ({0})", serverIps[i]);
 
                             items = new GridColumn();
+                            items.Header = "Date";
+                            items.FieldName = "Date_" + i;
+                            banners.Columns.Add(items);
+
+                            items = new GridColumn();
                             items.Header = "Started";
                             items.FieldName = "Started_" + i;
                             banners.Columns.Add(items);
@@ -144,12 +149,16 @@ namespace LogAnalyzerV2
 
                             grdDailyColReports.Bands.Add(banners);
 
-                            var AgentIps = collections.Where(x => x.Type == false).Select(a => a.ServerIp).OrderBy(x => x).ToList();
-
+                            var AgentIps = serverAgentRelationTable.Where(x => x.Type == false).Select(a => a.ServerIp).OrderBy(x => x).ToList();
                             for (int j = 0; j < AgentIps.Count(); j++)
                             {
                                 banners = new GridControlBand();
                                 banners.Header = "VAF Agent" + "(" + AgentIps[j] + ")";
+
+                                items = new GridColumn();
+                                items.Header = "Date";
+                                items.FieldName = "Date_" + (j + 1).ToString();
+                                banners.Columns.Add(items);
 
                                 items = new GridColumn();
                                 items.Header = "Started";
@@ -181,6 +190,8 @@ namespace LogAnalyzerV2
         #endregion
 
         #region combobox controls 
+
+        // Handles VAF Server Sessions on data grid
         private bool handleVsServers = true;
         private void cmbVSVAFServers_DropDownClosed(object sender, EventArgs e)
         {
@@ -193,7 +204,6 @@ namespace LogAnalyzerV2
             handleVsServers = cmb.IsDropDownOpen;
             //HandleVsServers();
         }
-
         private void HandleVsServers()
         {
             string selectedVAFServer;
@@ -235,6 +245,7 @@ namespace LogAnalyzerV2
             }
         }
 
+        // Handles VAF Agent Sessions on data grid
         private bool handleVsAgents = true;
         private void cmbVSVAFAgents_DropDownClosed(object sender, EventArgs e)
         {
@@ -263,18 +274,18 @@ namespace LogAnalyzerV2
 
             if (selectedVAFAgent != null)
             {
-                //serviceSessions = bgWorker.serviceSessions(selectedVAFAgent, "VAF Agent Session");
+                serviceSessions = bgWorker.serviceSessions(selectedVAFAgent, "VAF Agent Session");
 
-                //if ((serviceSessions == null || serviceSessions.Count == 0))
-                //{
-                //    MessageBox.Show("Server: " + selectedVAFAgent + " does not have any session to display.", "Log Analyzer VAF Agent" + selectedVAFAgent);
-                //    grdSessionReport.ItemsSource = null;
-                //}
+                if ((serviceSessions == null || serviceSessions.Count == 0))
+                {
+                    MessageBox.Show("Server: " + selectedVAFAgent + " does not have any session to display.", "Log Analyzer VAF Agent" + selectedVAFAgent);
+                    grdSessionReport.ItemsSource = null;
+                }
 
-                //else
-                //{
-                //    grdSessionReport.ItemsSource = serviceSessions;
-                //}
+                else
+                {
+                    grdSessionReport.ItemsSource = serviceSessions;
+                }
             }
 
             else
@@ -283,6 +294,7 @@ namespace LogAnalyzerV2
             }
         }
 
+        // Select VAF Server'server
         private bool handleCsServers = true;
         private void cmbCSVAFServers_DropDownClosed(object sender, EventArgs e)
         {
@@ -349,6 +361,7 @@ namespace LogAnalyzerV2
                             cmbCSVAFSessions.ItemsSource = cmbSessionList;
                         }
                     }
+                    else { cmbCSVAFSessions.ItemsSource = null; }
                 }
 
                 else
@@ -366,6 +379,7 @@ namespace LogAnalyzerV2
             }
         }
 
+        // Select VAF Agent's Agent
         private bool handleCsAgents = true;
         private void cmbCSVAFAgents_DropDownClosed(object sender, EventArgs e)
         {
@@ -416,10 +430,10 @@ namespace LogAnalyzerV2
                                                                                     " : " + (item.Started == DateTime.MinValue ? "unknown" : item.Started.ToString("HH:mm:ss")) +
                                                                                     " ~ " + (item.Completed == null ? "continues" : item.Completed.Value.ToString("HH:mm:ss")));
                             }
-
                             cmbCSVAFSessions.ItemsSource = cmbSessionList;
                         }
                     }
+                    else { cmbCSVAFSessions.ItemsSource = null; }
                 }
 
                 else
@@ -442,6 +456,7 @@ namespace LogAnalyzerV2
             //}
         }
 
+        // Select VAF Server Session
         private bool handleCsSession = true;
         private void cmbCSVAFSessions_DropDownClosed(object sender, EventArgs e)
         {
@@ -547,6 +562,7 @@ namespace LogAnalyzerV2
             }
         }
 
+        //File Transfer Buttons
         private bool handleFileTransfer = true;
         private void cmbAgentFileTransfer_DropDownClosed(object sender, EventArgs e)
         {
@@ -593,14 +609,25 @@ namespace LogAnalyzerV2
             OppositeInformationWindow oppWin = new OppositeInformationWindow();
             oppWin.ShowDialog();
         }
-
         private void btnExpCollectionResults_Click(object sender, RoutedEventArgs e)
         {
             if (bgWorker.scheduledJobsList != null && bgWorker.scheduledJobsList.Count != 0)
             {
-                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\CollectionResults " + DateTime.Now.ToString("yyyy-MM-dd") + ".csv";
-                grdScheduledjobsReportTable.ExportToCsv(loc);
-
+                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\CollectionResults " + DateTime.Now.ToString("MM/dd/yyyy") + ".xlsx";
+                grdScheduledjobsReportTable.ExportToXlsx(loc);
+                MessageBox.Show("The list has been generated to Desktop.");
+            }
+            else
+            {
+                MessageBox.Show("Nothing to Export");
+            }
+        }
+        private void btnExpDailyCollectionResults_Click(object sender, RoutedEventArgs e)
+        {
+            if (bgWorker.scheduledJobsList != null && bgWorker.scheduledJobsList.Count != 0)
+            {
+                var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\DailySummaryResult " + DateTime.Now.ToString("MM/dd/yyyy") + ".xlsx";
+                grdDailyColReportSummary.ExportToXlsx(loc);
                 MessageBox.Show("The list has been generated to Desktop.");
             }
             else

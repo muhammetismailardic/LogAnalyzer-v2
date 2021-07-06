@@ -41,7 +41,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                        <Label Width="Auto" Height="21" Content="Please Select Item to display details."></Label>
                     </Grid>
 
                     <Grid Grid.Row="1">
@@ -91,8 +91,10 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Button x:Name="btnExpCollectionResults" Grid.Row="0" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpCollectionResults_Click"/>
-                    
+                    <Grid Grid.Row="0">
+                        <Button x:Name="btnExpCollectionResults" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpCollectionResults_Click"/>
+                    </Grid>
+                        
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -112,7 +114,7 @@
                         <ComboBox x:Name="cmbCSVAFSessions" IsEditable="True" IsReadOnly="True" Text="--- Select Server Session ---" Grid.Column="2" Width="Auto" Height="25" SelectionChanged="CmbCSVAFSessions_SelectionChanged" DropDownClosed="cmbCSVAFSessions_DropDownClosed"/>
                     </Grid>
 
-                    <dxg:GridControl x:Name="grdScheduledjobsReport" Grid.Row="3" Grid.ColumnSpan="2" SelectionMode="MultipleRow">
+                    <dxg:GridControl x:Name="grdScheduledjobsReport" Grid.Row="3" Grid.ColumnSpan="2" SelectionMode="MultipleRow" ClipboardCopyMode="IncludeHeader">
                         <dxg:GridControl.View>
                             <dxg:TableView x:Name="grdScheduledjobsReportTable" ShowAutoFilterRow="True" ShowFilterPanelMode="ShowAlways" AllowEditing="True" AutoWidth="True" BestFitMode="Default" ShowCriteriaInAutoFilterRow="False" ShowSearchPanelMode="Never" GroupSummaryDisplayMode="AlignByColumns" SummariesIgnoreNullValues="True" ShowTotalSummary="True"/>
                         </dxg:GridControl.View>
@@ -126,12 +128,12 @@
                         </dxg:GridColumn>
                         <dxg:GridColumn FieldName="Started">
                             <dxg:GridColumn.EditSettings>
-                                <dxe:DateEditSettings Mask="G" MaskUseAsDisplayFormat="True" />
+                                <dxe:DateEditSettings Mask="T" MaskUseAsDisplayFormat="True" />
                             </dxg:GridColumn.EditSettings>
                         </dxg:GridColumn>
                         <dxg:GridColumn FieldName="Completed">
                             <dxg:GridColumn.EditSettings>
-                                <dxe:DateEditSettings Mask="G" MaskUseAsDisplayFormat="True"/>
+                                <dxe:DateEditSettings Mask="T" MaskUseAsDisplayFormat="True"/>
                             </dxg:GridColumn.EditSettings>
                         </dxg:GridColumn>
                         <dxg:GridColumn FieldName="Duration"/>
@@ -140,11 +142,22 @@
             </TabItem>
             <TabItem Header="Daily Collection Result">
                 <Grid>
-                    <dxg:GridControl x:Name="grdDailyColReports">
-                        <dxg:GridControl.View>
-                            <dxg:TableView AutoWidth="False"/>
-                        </dxg:GridControl.View>
-                    </dxg:GridControl>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    
+                    <Grid Grid.Row="0">
+                        <Button x:Name="btnExpDailyCollectionResults" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpDailyCollectionResults_Click"/>
+                    </Grid>
+                    
+                    <Grid Grid.Row="1">
+                        <dxg:GridControl x:Name="grdDailyColReports" SelectionMode="MultipleRow">
+                            <dxg:GridControl.View>
+                                <dxg:TableView x:Name="grdDailyColReportSummary" AutoWidth="False"/>
+                            </dxg:GridControl.View>
+                        </dxg:GridControl>
+                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem Header="Agent File Transfers">
