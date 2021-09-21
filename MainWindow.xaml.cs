@@ -635,5 +635,11 @@ namespace LogAnalyzerV2
                 MessageBox.Show("Nothing to Export");
             }
         }
+
+        private void Onclick_CapacityUtilization(object sender, RoutedEventArgs e)
+        {
+            CapacityUtilization capacityUtilization = new CapacityUtilization();
+            capacityUtilization.ShowDialog();
+        }
     }
 }

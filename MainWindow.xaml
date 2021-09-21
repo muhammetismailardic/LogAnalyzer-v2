@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
         mc:Ignorable="d"
-        Title="VAF Log Analyzer" Height="450" Width="800" WindowStartupLocation="CenterScreen">
+        Title="VAF Log Analyzer" Height="450" Width="800" WindowStartupLocation="CenterScreen" Icon="vaf.png">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25" />
@@ -15,7 +15,8 @@
 
         <DockPanel Grid.Row="0">
             <Menu DockPanel.Dock="Top" Height="25">
-                <MenuItem Header="Other Tools">
+                <MenuItem Header="Tools">
+                    <MenuItem Header="Calculate Capacity Utilization" Click="Onclick_CapacityUtilization" />
                     <MenuItem Header="FTP Issued NEs" />
                     <MenuItem Header="Calculate NE FTP Duration" />
                     <MenuItem Header="Comma Counter" />
@@ -31,7 +32,7 @@
             <TabItem Header="VAF Sessions">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="21" />
+                        <RowDefinition Height="22" />
                         <RowDefinition Height="25" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -41,7 +42,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Label Width="Auto" Height="21" Content="Please Select Item to display details."></Label>
+                        <Label Width="Auto" Height="22" Content="Please Select Item to display details."></Label>
                     </Grid>
 
                     <Grid Grid.Row="1">
@@ -92,9 +93,9 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0">
-                        <Button x:Name="btnExpCollectionResults" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpCollectionResults_Click"/>
+                        <dx:SimpleButton x:Name="btnExpCollectionResults" Content="Export" Width="85" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Glyph="{dx:DXImage SvgImages/Export/ExportFile.svg}" Click="btnExpCollectionResults_Click"/>
                     </Grid>
-                        
+
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -146,11 +147,11 @@
                         <RowDefinition Height="25" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    
+
                     <Grid Grid.Row="0">
-                        <Button x:Name="btnExpDailyCollectionResults" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpDailyCollectionResults_Click"/>
+                        <dx:SimpleButton x:Name="btnExpDailyCollectionResults" Content="Export" Width="85" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpDailyCollectionResults_Click" Glyph="{dx:DXImage SvgImages/Export/ExportFile.svg}"/>
                     </Grid>
-                    
+
                     <Grid Grid.Row="1">
                         <dxg:GridControl x:Name="grdDailyColReports" SelectionMode="MultipleRow">
                             <dxg:GridControl.View>
@@ -163,7 +164,7 @@
             <TabItem Header="Agent File Transfers">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="20" />
+                        <RowDefinition Height="22" />
                         <RowDefinition Height="25" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -173,7 +174,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Label Width="Auto" Height="20" Content="Please Select Item to display details."></Label>
+                        <Label Width="Auto" Height="22" Content="Please Select Item to display details."></Label>
                     </Grid>
 
                     <Grid Grid.Row="1">

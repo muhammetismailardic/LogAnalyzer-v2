@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
         mc:Ignorable="d"
         Title="VAF Opposite Analyzer" Height="450" Width="800">
     <Grid>
@@ -12,7 +12,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
-        <Button x:Name="btnExpOppList" Grid.Row="0" Content="Export" Width="60" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpOppList_Click" />
+        <dx:SimpleButton x:Name="btnExpOppList" Grid.Row="0" Content="Export" Width="85" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpOppList_Click" Glyph="{dx:DXImage SvgImages/Export/ExportFile.svg}"/>
         <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="1">
             <dxg:GridControl.Bands>
                 <dxg:GridControlBand Header="Result">

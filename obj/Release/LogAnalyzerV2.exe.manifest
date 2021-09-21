@@ -450,6 +450,66 @@
     </dependentAssembly>
   </dependency>
   <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="DevExpress.Xpf.Controls.v19.2.dll" size="1454328">
+      <assemblyIdentity name="DevExpress.Xpf.Controls.v19.2" version="19.2.3.0" publicKeyToken="B88D1754D700E49A" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>bJF1mRFvBaPCOgxqMWpkA9iWhzeXiRIcVjLHrB7menY=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="de\DevExpress.Xpf.Controls.v19.2.resources.dll" size="12024">
+      <assemblyIdentity name="DevExpress.Xpf.Controls.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="de" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>DnnFuMJU45iV3+iAqLRFZg8NmEskOswUMyZ6Co/gfUU=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="es\DevExpress.Xpf.Controls.v19.2.resources.dll" size="11512">
+      <assemblyIdentity name="DevExpress.Xpf.Controls.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="es" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>hnbrQf6mfT/MQfCFm+KUjblGBAneAEtOUVzVQQJ+HJM=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ja\DevExpress.Xpf.Controls.v19.2.resources.dll" size="11000">
+      <assemblyIdentity name="DevExpress.Xpf.Controls.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="ja" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>zS7yPLDbUcl+VtcX/GjE1qxDYDMYdeEE3cQtQ/kaNfU=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ru\DevExpress.Xpf.Controls.v19.2.resources.dll" size="12024">
+      <assemblyIdentity name="DevExpress.Xpf.Controls.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="ru" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>bEtzy8xhNGxWSzyuZK2Vv9YbHNtZASkrxwOHpEqNsvk=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
     <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="DevExpress.Xpf.Core.v19.2.dll" size="10586360">
       <assemblyIdentity name="DevExpress.Xpf.Core.v19.2" version="19.2.3.0" publicKeyToken="B88D1754D700E49A" language="neutral" processorArchitecture="msil" />
       <hash>
@@ -782,6 +842,66 @@
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
         <dsig:DigestValue>o97Yl3/sSL5vbRUhl3lLUlR8E6CZBdeJDHpVx6hYtAw=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="DevExpress.Xpf.NavBar.v19.2.dll" size="570104">
+      <assemblyIdentity name="DevExpress.Xpf.NavBar.v19.2" version="19.2.3.0" publicKeyToken="B88D1754D700E49A" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>RBSJsi3NooyVKXVqTeVUJ1/PhoERtbUFjqwB+1sxwWs=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="de\DevExpress.Xpf.NavBar.v19.2.resources.dll" size="11000">
+      <assemblyIdentity name="DevExpress.Xpf.NavBar.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="de" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>dyQoc3xtCszCyK2JsnWS3Pm6GwBH50arVRhnJnq6OzI=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="es\DevExpress.Xpf.NavBar.v19.2.resources.dll" size="11000">
+      <assemblyIdentity name="DevExpress.Xpf.NavBar.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="es" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>ThcRYZqDGsX7ftjNONDaEcKjsKWG2wavE4u5bytFwNQ=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ja\DevExpress.Xpf.NavBar.v19.2.resources.dll" size="11000">
+      <assemblyIdentity name="DevExpress.Xpf.NavBar.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="ja" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>zFqwt6cWlzwrhl91QFKLJa+TjJzACZAB2D8iXnZJhlM=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ru\DevExpress.Xpf.NavBar.v19.2.resources.dll" size="11000">
+      <assemblyIdentity name="DevExpress.Xpf.NavBar.v19.2.resources" version="19.2.0.0" publicKeyToken="B88D1754D700E49A" language="ru" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>tcjfeqQtGP9HP9yOrPQO3AhuAVZCJvvLzUdDU7Tx6TQ=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -1410,14 +1530,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="LogAnalyzerV2.exe" size="83968">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="LogAnalyzerV2.exe" size="99328">
       <assemblyIdentity name="LogAnalyzerV2" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>auFO1+QsZPsh6YFOYXA4/PepFftuY9mAKoeA6Y3nFfQ=</dsig:DigestValue>
+        <dsig:DigestValue>47jmLzVqBiES3CSIq4MVwiICz0zfcKEP0nclCsM4/0U=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
