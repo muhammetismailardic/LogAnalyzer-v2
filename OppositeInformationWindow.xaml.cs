@@ -28,9 +28,8 @@ namespace LogAnalyzerV2
         public OppositeInformationWindow()
         {
             InitializeComponent();
-            bgWorker = new BGWorker(MainWindow, this);
+            bgWorker = new BGWorker(MainWindow, this, null);
         }
-
         private void btnCheckOpposite_Click(object sender, RoutedEventArgs e)
         {
             if (bgWorker.scheduledJobsList != null)
@@ -95,7 +94,6 @@ namespace LogAnalyzerV2
                 bgWorker.worker.RunWorkerAsync(OppProgressBarItemCount);
             }
         }
-
         private bool FileNameCheck(string[] InsertedFileNames)
         {
             string[] desiredNames = { "NEList.csv", "rmon_1day", "RadioIP" };
@@ -127,7 +125,6 @@ namespace LogAnalyzerV2
                         return false;
                     }
                 }
-
                 return true;
             }
             else
@@ -136,19 +133,30 @@ namespace LogAnalyzerV2
                 return false;
             }
         }
-
         private void btnExpOppList_Click(object sender, RoutedEventArgs e)
         {
             if (bgWorker.missingOpposites.Count != 0)
             {
                 var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\MissingOpposites " + DateTime.Now.ToString("yyyy-MM-dd") + ".xlsx";
                 grdMissingOppListTable.ExportToXlsx(loc);
-                MessageBox.Show("The list has been generated to Desktop.");
+                MessageBox.Show("The list has been generated to Desktop.",
+                    "Log Analyzer", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
             else
             {
-                MessageBox.Show("Nothing to Export");
+                MessageBox.Show("Nothing to Export",
+                    "Log Analyzer", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
+        }
+        private void requiredData_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Please Insert Following Data from VAF Server Folder:" +
+                "\nNEList.csv\nRadioIP(Inv-SubReport)" +
+                "\nRmon 1-day data", "Informational",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
     }
 }

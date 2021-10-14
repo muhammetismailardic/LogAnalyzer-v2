@@ -25,6 +25,7 @@ namespace LogAnalyzerV2.Services
         public List<string> RadioConfData;
         public List<ServerAgentCollection> ServerAgentTable;
         public List<CollectionItem> scheduledJobsList;
+
         // Insert Transfer files......
         public List<TransferItems> transferItems;
         public bool IsFileTransferEnabled = false;
@@ -36,6 +37,10 @@ namespace LogAnalyzerV2.Services
         List<RadioConfItems> RadioConfigurationItems;
         List<string> RadioConfigurationIndexLoc;
         List<RadioConfItems> newList = new List<RadioConfItems>();
+
+        // For FTP Duration
+        public List<string> timeTableStringList;
+        public List<TimeTable> timeTable = new List<TimeTable>();
 
         //Using NE List
         string tempIp = String.Empty;
@@ -84,8 +89,57 @@ namespace LogAnalyzerV2.Services
             {
                 AnalyzeOppositeInfo(max, result, counter, e, bw);
             }
-        }
 
+            if (timeTableStringList != null)
+            {
+                AnalyzeTraceLogForDuration(max, result, counter, e, bw);
+            }
+        }
+        private void AnalyzeTraceLogForDuration(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            var type = "";
+            foreach (var ln in timeTableStringList)
+            {
+                counter++;
+                int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                if (counter % 42 == 0)
+                {
+                    result++;
+                    bw.ReportProgress(progressPercentage);
+                }
+                e.Result = result;
+
+                // The line contains either Actual or Historical collection
+                if (ln.Contains("StartsASchTask:"))
+                {
+                    // Get the desired line as string array for further process.
+                    var line = MakeLineProper(ln);
+
+                    if (IsIndexExist(2, line[1].Split(':').Length))
+                    {
+                        type = line[1].Split(':')[2];
+                        if (IsIndexExist(0, line[1].Split(':')[2].Split('>').Length))
+                        {
+                            type = type.Split('>')[0];
+                            type = type.Remove(type.Length - 1);
+                        }
+                    }
+
+                    if (type == "PRMON Actual")
+                    {
+                        FTPActualCollectionDuration(type, line);
+                    }
+                    else if (type == "PRMON Collect")
+                    {
+                        FTPHistoricalCollectionDuration(line);
+                    }
+                    else
+                    {
+                        type = "*";
+                    }
+                }
+            }
+        }
         private void PrepareRelationFromFiles(string path)
         {
             string secondLine = File.ReadLines(path).ElementAtOrDefault(1);
@@ -109,476 +163,7 @@ namespace LogAnalyzerV2.Services
             }
         }
 
-        // For Missing far end section
-        private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            missingOpposites = new List<MissingOpposite>();
-
-            // Get the first list of NEs to proceed further
-            AnalyzeNEList(max, result, counter, e, bw);
-        }
-        private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            List<string> NeListOppIps = new List<string>();
-            string primaryAdd = "";
-            string NeType = "";
-
-            List<int> NeListOppLoc = new List<int>();
-            int primaryAddLoc = 3;
-            int NeTypeLoc = 2;
-
-            foreach (string line in NEList)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    counter++;
-                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                    //TODO: Here will be checked!
-                    result++;
-                    bw.ReportProgress(progressPercentage);
-                    e.Result = result;
-
-                    // TODO Define opp Ip Loc
-                    var items = line.Split(',');
-                    if (NEList.IndexOf(line) == 1)
-                    {
-                        int loc = 0;
-                        for (int i = 0; i < items.Length; i++)
-                        {
-                            if (items[i].Contains("Opposite NE Primary Address-"))
-                            {
-                                NeListOppLoc.Add(loc);
-                            }
-                            loc++;
-                        }
-                    }
-
-                    // Find Opp IPs
-                    if (NEList.IndexOf(line) != 0 && NEList.IndexOf(line) != 1)
-                    {
-                        // Getting NE Type and IP address.
-                        if (primaryAddLoc != -1 && NeTypeLoc != -1)
-                        {
-                            primaryAdd = items[primaryAddLoc].ToString();
-                            NeType = items[NeTypeLoc].ToString();
-                        }
-
-
-                        foreach (var index in NeListOppLoc)
-                        {
-                            if (!String.IsNullOrEmpty(items[index].ToString()))
-                            {
-                                // Slot Number
-                                var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
-
-                                if (currrentIndexLoc == 9)
-                                {
-                                    currrentIndexLoc = 11;
-                                }
-                                else if (currrentIndexLoc == 10)
-                                {
-                                    currrentIndexLoc = 12;
-                                }
-                                else if (currrentIndexLoc == 11)
-                                {
-                                    currrentIndexLoc = 13;
-                                }
-                                else if (currrentIndexLoc == 12)
-                                {
-                                    currrentIndexLoc = 14;
-                                }
-
-                                NeListOppIps.Add((items[index] + "," + "MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
-                            }
-                        }
-
-                        // Here add the founded items to list
-                        // This can be simplified
-                        foreach (var item in NeListOppIps)
-                        {
-                            var missingOpp = new MissingOpposite()
-                            {
-                                NEType = NeType,
-                                IP = Regex.Replace(primaryAdd, "0*([0-9]+)", "${1}"),
-                                Port = item.Split(',')[1].ToString(),
-                                OppIP = item.Split(',')[0].ToString(),
-                                OppPort = "",
-                            };
-                            missingOpposites.Add(missingOpp);
-                        }
-                    }
-                }
-                primaryAdd = "";
-                NeType = "";
-                NeListOppIps.Clear();
-            }
-            //Adding counts to progress bar
-            max += missingOpposites.Count();
-
-            AnalyzeNEListForOpposite(max, result, counter, e, bw);
-        }
-        private void AnalyzeNEListForOpposite(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            var IpList = missingOpposites.Select(x => x.IP).Distinct();
-
-            max += IpList.Count();
-            foreach (var Ip in IpList)
-            {
-                counter++;
-                int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                //TODO: Here will be checked!
-                result++;
-                bw.ReportProgress(progressPercentage);
-                e.Result = result;
-
-                if (Ip == "10.25.46.5")
-                {
-                    Console.WriteLine("Here");
-                }
-
-                //find details for defined Ip
-                var findIp = missingOpposites.Where(x => x.IP == Ip).ToList();
-
-                //Find all port information
-                var findNearEndPorts = findIp.Select(x => x.Port).ToList();
-
-                //Find all opp ports
-                var findOpps = findIp.Select(y => y.OppIP).ToList().Distinct();
-                foreach (var oppIp in findOpps)
-                {
-                    // Find reverse opposite ports for selected IP.
-                    var oppPorts = missingOpposites.Where(x => x.IP == oppIp && x.OppIP == Ip).Select(y => y.Port).ToList();
-
-                    // If Selected reverse opp ip exist at other end
-                    if (oppPorts != null)
-                    {
-                        int i = 0;
-                        foreach (var missingOpposite in missingOpposites.Where(ip => ip.IP == Ip && ip.OppIP == oppIp))
-                        {
-                            if (String.IsNullOrWhiteSpace(missingOpposite.OppPort))
-                            {
-                                while (i < oppPorts.Count())
-                                {
-                                    missingOpposite.OppPort = oppPorts[i];
-                                    break;
-                                }
-                                i++;
-                            }
-                        }
-                    }
-                }
-            }
-            AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
-        }
-        private void AnalyzeRadioConfigurationInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            RadioConfigurationIndexLoc = new List<string>();
-            RadioConfigurationItems = new List<RadioConfItems>();
-
-            // Analyze Radio Configuration data to find index and related data for further process
-            // When this loop over RadioConfigurationItems list will be filled.
-
-            foreach (string line in RadioConfData)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    counter++;
-                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                    result++;
-                    bw.ReportProgress(progressPercentage);
-                    e.Result = result;
-
-                    // Finding Indexies
-                    var items = line.Split(',');
-                    if (RadioConfData.IndexOf(line) == 0)
-                    {
-                        ////Define the RadioConfData line count
-                        //rmonLineCount = items.Length;
-
-                        int loc = 0;
-                        for (int i = 0; i < items.Length; i++)
-                        {
-                            if (items[i].Equals("Near End IP Address") || items[i].Equals("IP Address"))
-                            {
-                                RadioConfigurationIndexLoc.Add("IP Address," + loc);
-                            }
-
-                            if (items[i].Equals("Near End Slot") || items[i].Equals("Slot"))
-                            {
-                                RadioConfigurationIndexLoc.Add("Port," + loc);
-                            }
-
-                            //if (items[i].Equals("Far End IP Address"))
-                            //{
-                            //    RadioConfigurationIndexLoc.Add("Port," + loc);
-                            //}
-
-                            if (items[i].Equals("TX RF Frequency"))
-                            {
-                                RadioConfigurationIndexLoc.Add("TX Frequency," + loc);
-                            }
-
-                            if (items[i].Equals("RX RF Frequency"))
-                            {
-                                RadioConfigurationIndexLoc.Add("RX Frequency," + loc);
-                            }
-
-                            loc++;
-                        }
-                    }
-
-                    // Find Opp IPs using Index
-                    if (RadioConfData.IndexOf(line) != 0)
-                    {
-                        // Insert headers to list
-                        var radioConfItems = new RadioConfItems();
-                        foreach (var item in RadioConfigurationIndexLoc)
-                        {
-                            //Check if the array lenght is ok
-                            bool IsOk = inBounds((int.Parse(item.Split(',')[1])), items);
-
-                            if (IsOk)
-                            {
-                                if (item.Split(',')[0] == "IP Address")
-                                {
-                                    radioConfItems.IpAddress = Regex.Replace(items[(int.Parse(item.Split(',')[1]))], "0*([0-9]+)", "${1}");
-                                }
-
-                                else if (item.Split(',')[0] == "Port")
-                                {
-                                    radioConfItems.Port = "MODEM (" + "Slot" + int.Parse(items[(int.Parse(item.Split(',')[1]))]).ToString("D2") + ")";
-                                }
-
-                                else if (item.Split(',')[0] == "TX Frequency")
-                                {
-                                    radioConfItems.TXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "RX Frequency")
-                                {
-                                    radioConfItems.RXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
-                                }
-                            }
-                        }
-
-                        //Adding items to Rmon list.
-                        RadioConfigurationItems.Add(radioConfItems);
-                    }
-                }
-            }
-            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
-        }
-        private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            RmonIndexLoc = new List<string>();
-            RmonItems = new List<RmonItems>();
-
-            // Analyze Rmon data to find index and related data for further process
-            // When this loop over RmonItems list will be filled.
-            foreach (string line in RmonData)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    counter++;
-                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                    result++;
-                    bw.ReportProgress(progressPercentage);
-                    e.Result = result;
-
-                    // Finding Indexies
-                    var items = line.Split(',');
-                    if (RmonData.IndexOf(line) == 0)
-                    {
-                        //Define the Rmon line count
-                        rmonLineCount = items.Length;
-
-                        int loc = 0;
-                        for (int i = 0; i < items.Length; i++)
-                        {
-                            if (items[i].Equals("Date"))
-                            {
-                                RmonIndexLoc.Add("Date," + loc);
-                            }
-
-                            if (items[i].Equals("IP Address"))
-                            {
-                                RmonIndexLoc.Add("IP Address," + loc);
-                            }
-
-                            if (items[i].Equals("Port"))
-                            {
-                                RmonIndexLoc.Add("Port," + loc);
-                            }
-
-                            if (items[i].Equals("Opposite NE IP Address"))
-                            {
-                                RmonIndexLoc.Add("Opposite NE IP Address," + loc);
-                            }
-
-                            if (items[i].Equals("Opposite Port"))
-                            {
-                                RmonIndexLoc.Add("Opposite Port," + loc);
-                            }
-
-                            if (items[i].Equals("Group Member"))
-                            {
-                                RmonIndexLoc.Add("Group Member," + loc);
-                            }
-                            loc++;
-                        }
-                    }
-
-                    // Find Opp IPs using Index
-                    if (RmonData.IndexOf(line) != 0)
-                    {
-                        // Insert headers to list
-                        var rmonItems = new RmonItems();
-                        foreach (var item in RmonIndexLoc)
-                        {
-                            //Check if the array lenght is ok
-                            bool IsOk = inBounds((int.Parse(item.Split(',')[1])), items);
-
-                            if (IsOk)
-                            {
-                                if (item.Split(',')[0] == "Date")
-                                {
-                                    rmonItems.Date = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "IP Address")
-                                {
-                                    rmonItems.IP = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "Port")
-                                {
-                                    rmonItems.Port = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "Opposite NE IP Address")
-                                {
-                                    rmonItems.OppIP = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "Opposite Port")
-                                {
-                                    rmonItems.OppPort = items[(int.Parse(item.Split(',')[1]))];
-                                }
-
-                                else if (item.Split(',')[0] == "Group Member")
-                                {
-                                    rmonItems.GroupMember = items[(int.Parse(item.Split(',')[1]))];
-                                }
-                            }
-                        }
-
-                        //Adding items to Rmon list.
-                        RmonItems.Add(rmonItems);
-                    }
-                }
-            }
-            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
-        }
-        private void UpdatingTheListWithRmonFile(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
-        {
-            foreach (var preparedNEListItems in missingOpposites)
-            {
-                bool isLast = false;
-                counter++;
-                int progressPercentage = Convert.ToInt32((counter * 100) / max);
-
-                //TODO: Here will be checked!
-                result++;
-                bw.ReportProgress(progressPercentage);
-                e.Result = result;
-
-                if (preparedNEListItems == missingOpposites.Last())
-                {
-                    isLast = true;
-                }
-                InsertRadioConfDataToNEList(preparedNEListItems, isLast);
-
-                //Updating Missing Opposite with Rmon using Rmon data
-                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
-                if (rmonSelectedOppPort.Count == 1)
-                {
-                    var rmonTheSelected = rmonSelectedOppPort.SingleOrDefault();
-
-                    //Update the selected list if exist.
-                    if (rmonSelectedOppPort != null)
-                    {
-                        //Check if Group Member for any potential match
-                        //var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-                        var findOppositeIpDetails = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
-
-                        preparedNEListItems.HasRmon = true;
-                        preparedNEListItems.Date = rmonTheSelected.Date;
-                        preparedNEListItems.GroupMember = (String.IsNullOrWhiteSpace(rmonTheSelected.GroupMember) ? "-" : rmonTheSelected.GroupMember);
-                        preparedNEListItems.OppIpInRmon = rmonTheSelected.OppIP;
-                        preparedNEListItems.OppPortInRmon = rmonTheSelected.OppPort;
-
-                        if (findOppositeIpDetails != null)
-                            preparedNEListItems.OppGroupMember = (String.IsNullOrWhiteSpace(findOppositeIpDetails.GroupMember) ? "-" : findOppositeIpDetails.GroupMember);
-
-                        // Linking both Near & Far End NE type
-                        string oppPortNeType = missingOpposites.Where(x => x.IP == preparedNEListItems.OppIP && x.Port == preparedNEListItems.OppPort).Select(t => t.NEType).FirstOrDefault();
-                        preparedNEListItems.NEType = preparedNEListItems.NEType + "--" + oppPortNeType;
-
-                        //If NE list opposite match with Rmon line.
-                        if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
-                        {
-                            // If NE list and Rmon Opposite match!
-                            if (rmonTheSelected.OppPort == preparedNEListItems.OppPort)
-                            {
-                                preparedNEListItems.IsMatch = true;
-                                preparedNEListItems.GroupMember = rmonTheSelected.GroupMember;
-                            }
-                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
-                            {
-                                if (findOppositeIpDetails != null)
-                                {
-                                    if (findOppositeIpDetails.GroupMember.Contains(preparedNEListItems.OppPort))
-                                        preparedNEListItems.IsMatch = true;
-                                }
-                            }
-                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
-                            {
-                                preparedNEListItems.Status = "Issue, (Only NE list has opposite Info)";
-                            }
-                            else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
-                            {
-                                preparedNEListItems.Status = "Issue, (Only Rmon has Opposite info)";
-                            }
-                        }
-                        else if (String.IsNullOrWhiteSpace(rmonTheSelected.OppIP))
-                        {
-                            preparedNEListItems.Status = "Issue, (Rmon has No Opposite IP)";
-                        }
-
-                        if (preparedNEListItems.IsMatch == true && preparedNEListItems.HasRmon == true)
-                        {
-                            preparedNEListItems.Status = "Ok";
-                        }
-                    }
-                }
-                else
-                {
-                    if (preparedNEListItems.HasRmon == false && String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
-                    {
-                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon and Opposite Link)";
-                    }
-
-                    else if (preparedNEListItems.HasRmon == false)
-                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon)";
-                }
-            }
-            PrepareListForUniqueMatchInOpposite();
-        }
-
+        #region Log Analyzer
         // For Log Analyzer
         private void AnalyzeLog(string readLogFile)
         {
@@ -1131,6 +716,514 @@ namespace LogAnalyzerV2.Services
             return count;
         }
 
+        #endregion
+
+        #region Missing Far End 
+        // For Missing far end section
+        private void AnalyzeOppositeInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            missingOpposites = new List<MissingOpposite>();
+
+            // Get the first list of NEs to proceed further
+            AnalyzeNEList(max, result, counter, e, bw);
+        }
+        private void AnalyzeNEList(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            List<string> NeListOppIps = new List<string>();
+            string primaryAdd = "";
+            string NeType = "";
+
+            List<int> NeListOppLoc = new List<int>();
+            int primaryAddLoc = 3;
+            int NeTypeLoc = 2;
+
+            foreach (string line in NEList)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    //int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                    //TODO: Here will be checked!
+                    //result++;
+                    //bw.ReportProgress(progressPercentage);
+                    //e.Result = result;
+
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                    if (counter % 42 == 0)
+                    {
+                        result++;
+                        bw.ReportProgress(progressPercentage);
+                    }
+                    e.Result = result;
+
+                    // TODO Define opp Ip Loc
+                    var items = line.Split(',');
+                    if (NEList.IndexOf(line) == 1)
+                    {
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            if (items[i].Contains("Opposite NE Primary Address-"))
+                            {
+                                NeListOppLoc.Add(loc);
+                            }
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs
+                    if (NEList.IndexOf(line) != 0 && NEList.IndexOf(line) != 1)
+                    {
+                        // Getting NE Type and IP address.
+                        if (primaryAddLoc != -1 && NeTypeLoc != -1)
+                        {
+                            primaryAdd = items[primaryAddLoc].ToString();
+                            NeType = items[NeTypeLoc].ToString();
+                        }
+
+
+                        foreach (var index in NeListOppLoc)
+                        {
+                            if (!String.IsNullOrEmpty(items[index].ToString()))
+                            {
+                                // Slot Number
+                                var currrentIndexLoc = NeListOppLoc.IndexOf(index) + 1;
+
+                                if (currrentIndexLoc == 9)
+                                {
+                                    currrentIndexLoc = 11;
+                                }
+                                else if (currrentIndexLoc == 10)
+                                {
+                                    currrentIndexLoc = 12;
+                                }
+                                else if (currrentIndexLoc == 11)
+                                {
+                                    currrentIndexLoc = 13;
+                                }
+                                else if (currrentIndexLoc == 12)
+                                {
+                                    currrentIndexLoc = 14;
+                                }
+
+                                NeListOppIps.Add((items[index] + "," + "MODEM (" + "Slot" + currrentIndexLoc.ToString("D2") + ")"));
+                            }
+                        }
+
+                        // Here add the founded items to list
+                        // This can be simplified
+                        foreach (var item in NeListOppIps)
+                        {
+                            var missingOpp = new MissingOpposite()
+                            {
+                                NEType = NeType,
+                                IP = Regex.Replace(primaryAdd, "0*([0-9]+)", "${1}"),
+                                Port = item.Split(',')[1].ToString(),
+                                OppIP = item.Split(',')[0].ToString(),
+                                OppPort = "",
+                            };
+                            missingOpposites.Add(missingOpp);
+                        }
+                    }
+                }
+                primaryAdd = "";
+                NeType = "";
+                NeListOppIps.Clear();
+            }
+            //Adding counts to progress bar
+            max += missingOpposites.Count();
+
+            AnalyzeNEListForOpposite(max, result, counter, e, bw);
+        }
+        private void AnalyzeNEListForOpposite(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            var IpList = missingOpposites.Select(x => x.IP).Distinct();
+
+            max += IpList.Count();
+            foreach (var Ip in IpList)
+            {
+                counter++;
+
+                //int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                ////TODO: Here will be checked!
+                //result++;
+                //bw.ReportProgress(progressPercentage);
+                //e.Result = result;
+
+                int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                if (counter % 42 == 0)
+                {
+                    result++;
+                    bw.ReportProgress(progressPercentage);
+                }
+                e.Result = result;
+
+                //find details for defined Ip
+                var findIp = missingOpposites.Where(x => x.IP == Ip).ToList();
+
+                //Find all port information
+                var findNearEndPorts = findIp.Select(x => x.Port).ToList();
+
+                //Find all opp ports
+                var findOpps = findIp.Select(y => y.OppIP).ToList().Distinct();
+                foreach (var oppIp in findOpps)
+                {
+                    // Find reverse opposite ports for selected IP.
+                    var oppPorts = missingOpposites.Where(x => x.IP == oppIp && x.OppIP == Ip).Select(y => y.Port).ToList();
+
+                    // If Selected reverse opp ip exist at other end
+                    if (oppPorts != null)
+                    {
+                        int i = 0;
+                        foreach (var missingOpposite in missingOpposites.Where(ip => ip.IP == Ip && ip.OppIP == oppIp))
+                        {
+                            if (String.IsNullOrWhiteSpace(missingOpposite.OppPort))
+                            {
+                                while (i < oppPorts.Count())
+                                {
+                                    missingOpposite.OppPort = oppPorts[i];
+                                    break;
+                                }
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+            AnalyzeRadioConfigurationInfo(max, result, counter, e, bw);
+        }
+        private void AnalyzeRadioConfigurationInfo(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            RadioConfigurationIndexLoc = new List<string>();
+            RadioConfigurationItems = new List<RadioConfItems>();
+
+            // Analyze Radio Configuration data to find index and related data for further process
+            // When this loop over RadioConfigurationItems list will be filled.
+
+            foreach (string line in RadioConfData)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    //int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    //result++;
+                    //bw.ReportProgress(progressPercentage);
+                    //e.Result = result;
+
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                    if (counter % 42 == 0)
+                    {
+                        result++;
+                        bw.ReportProgress(progressPercentage);
+                    }
+                    e.Result = result;
+
+                    // Finding Indexies
+                    var items = line.Split(',');
+                    if (RadioConfData.IndexOf(line) == 0)
+                    {
+                        ////Define the RadioConfData line count
+                        //rmonLineCount = items.Length;
+
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            if (items[i].Equals("Near End IP Address") || items[i].Equals("IP Address"))
+                            {
+                                RadioConfigurationIndexLoc.Add("IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Near End Slot") || items[i].Equals("Slot"))
+                            {
+                                RadioConfigurationIndexLoc.Add("Port," + loc);
+                            }
+
+                            //if (items[i].Equals("Far End IP Address"))
+                            //{
+                            //    RadioConfigurationIndexLoc.Add("Port," + loc);
+                            //}
+
+                            if (items[i].Equals("TX RF Frequency"))
+                            {
+                                RadioConfigurationIndexLoc.Add("TX Frequency," + loc);
+                            }
+
+                            if (items[i].Equals("RX RF Frequency"))
+                            {
+                                RadioConfigurationIndexLoc.Add("RX Frequency," + loc);
+                            }
+
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs using Index
+                    if (RadioConfData.IndexOf(line) != 0)
+                    {
+                        // Insert headers to list
+                        var radioConfItems = new RadioConfItems();
+                        foreach (var item in RadioConfigurationIndexLoc)
+                        {
+                            //Check if the array lenght is ok
+                            bool IsOk = inBounds((int.Parse(item.Split(',')[1])), items);
+
+                            if (IsOk)
+                            {
+                                if (item.Split(',')[0] == "IP Address")
+                                {
+                                    radioConfItems.IpAddress = Regex.Replace(items[(int.Parse(item.Split(',')[1]))], "0*([0-9]+)", "${1}");
+                                }
+
+                                else if (item.Split(',')[0] == "Port")
+                                {
+                                    radioConfItems.Port = "MODEM (" + "Slot" + int.Parse(items[(int.Parse(item.Split(',')[1]))]).ToString("D2") + ")";
+                                }
+
+                                else if (item.Split(',')[0] == "TX Frequency")
+                                {
+                                    radioConfItems.TXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "RX Frequency")
+                                {
+                                    radioConfItems.RXRFFrequency = items[(int.Parse(item.Split(',')[1]))];
+                                }
+                            }
+                        }
+
+                        //Adding items to Rmon list.
+                        RadioConfigurationItems.Add(radioConfItems);
+                    }
+                }
+            }
+            AnalyzeOppositeInfoRmon(max, result, counter, e, bw);
+        }
+        private void AnalyzeOppositeInfoRmon(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            RmonIndexLoc = new List<string>();
+            RmonItems = new List<RmonItems>();
+
+            // Analyze Rmon data to find index and related data for further process
+            // When this loop over RmonItems list will be filled.
+            foreach (string line in RmonData)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    counter++;
+                    //int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                    //result++;
+                    //bw.ReportProgress(progressPercentage);
+                    //e.Result = result;
+
+                    int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                    if (counter % 42 == 0)
+                    {
+                        result++;
+                        bw.ReportProgress(progressPercentage);
+                    }
+                    e.Result = result;
+
+                    // Finding Indexies
+                    var items = line.Split(',');
+                    if (RmonData.IndexOf(line) == 0)
+                    {
+                        //Define the Rmon line count
+                        rmonLineCount = items.Length;
+
+                        int loc = 0;
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            if (items[i].Equals("Date"))
+                            {
+                                RmonIndexLoc.Add("Date," + loc);
+                            }
+
+                            if (items[i].Equals("IP Address"))
+                            {
+                                RmonIndexLoc.Add("IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Port"))
+                            {
+                                RmonIndexLoc.Add("Port," + loc);
+                            }
+
+                            if (items[i].Equals("Opposite NE IP Address"))
+                            {
+                                RmonIndexLoc.Add("Opposite NE IP Address," + loc);
+                            }
+
+                            if (items[i].Equals("Opposite Port"))
+                            {
+                                RmonIndexLoc.Add("Opposite Port," + loc);
+                            }
+
+                            if (items[i].Equals("Group Member"))
+                            {
+                                RmonIndexLoc.Add("Group Member," + loc);
+                            }
+                            loc++;
+                        }
+                    }
+
+                    // Find Opp IPs using Index
+                    if (RmonData.IndexOf(line) != 0)
+                    {
+                        // Insert headers to list
+                        var rmonItems = new RmonItems();
+                        foreach (var item in RmonIndexLoc)
+                        {
+                            //Check if the array lenght is ok
+                            bool IsOk = inBounds((int.Parse(item.Split(',')[1])), items);
+
+                            if (IsOk)
+                            {
+                                if (item.Split(',')[0] == "Date")
+                                {
+                                    rmonItems.Date = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "IP Address")
+                                {
+                                    rmonItems.IP = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "Port")
+                                {
+                                    rmonItems.Port = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "Opposite NE IP Address")
+                                {
+                                    rmonItems.OppIP = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "Opposite Port")
+                                {
+                                    rmonItems.OppPort = items[(int.Parse(item.Split(',')[1]))];
+                                }
+
+                                else if (item.Split(',')[0] == "Group Member")
+                                {
+                                    rmonItems.GroupMember = items[(int.Parse(item.Split(',')[1]))];
+                                }
+                            }
+                        }
+
+                        //Adding items to Rmon list.
+                        RmonItems.Add(rmonItems);
+                    }
+                }
+            }
+            UpdatingTheListWithRmonFile(max, result, counter, e, bw);
+        }
+        private void UpdatingTheListWithRmonFile(int max, int result, int counter, DoWorkEventArgs e, BackgroundWorker bw)
+        {
+            foreach (var preparedNEListItems in missingOpposites)
+            {
+                bool isLast = false;
+                counter++;
+                //int progressPercentage = Convert.ToInt32((counter * 100) / max);
+
+                ////TODO: Here will be checked!
+                //result++;
+                //bw.ReportProgress(progressPercentage);
+                //e.Result = result;
+
+                int progressPercentage = Convert.ToInt32((counter * 100) / max);
+                if (counter % 42 == 0)
+                {
+                    result++;
+                    bw.ReportProgress(progressPercentage);
+                }
+                e.Result = result;
+
+                if (preparedNEListItems == missingOpposites.Last())
+                {
+                    isLast = true;
+                }
+                InsertRadioConfDataToNEList(preparedNEListItems, isLast);
+
+                //Updating Missing Opposite with Rmon using Rmon data
+                var rmonSelectedOppPort = RmonItems.Where(x => x.IP == preparedNEListItems.IP && x.Port == preparedNEListItems.Port).Select(a => new { a.OppIP, a.OppPort, a.GroupMember, a.Date }).ToList();
+                if (rmonSelectedOppPort.Count == 1)
+                {
+                    var rmonTheSelected = rmonSelectedOppPort.SingleOrDefault();
+
+                    //Update the selected list if exist.
+                    if (rmonSelectedOppPort != null)
+                    {
+                        //Check if Group Member for any potential match
+                        //var neListOppPort = preparedNEListItems.OppPort.Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+                        var findOppositeIpDetails = RmonItems.Find(x => x.IP == rmonTheSelected.OppIP && x.Port == preparedNEListItems.OppPort);
+
+                        preparedNEListItems.HasRmon = true;
+                        preparedNEListItems.Date = rmonTheSelected.Date;
+                        preparedNEListItems.GroupMember = (String.IsNullOrWhiteSpace(rmonTheSelected.GroupMember) ? "-" : rmonTheSelected.GroupMember);
+                        preparedNEListItems.OppIpInRmon = rmonTheSelected.OppIP;
+                        preparedNEListItems.OppPortInRmon = rmonTheSelected.OppPort;
+
+                        if (findOppositeIpDetails != null)
+                            preparedNEListItems.OppGroupMember = (String.IsNullOrWhiteSpace(findOppositeIpDetails.GroupMember) ? "-" : findOppositeIpDetails.GroupMember);
+
+                        // Linking both Near & Far End NE type
+                        string oppPortNeType = missingOpposites.Where(x => x.IP == preparedNEListItems.OppIP && x.Port == preparedNEListItems.OppPort).Select(t => t.NEType).FirstOrDefault();
+                        preparedNEListItems.NEType = preparedNEListItems.NEType + "--" + oppPortNeType;
+
+                        //If NE list opposite match with Rmon line.
+                        if (rmonTheSelected.OppIP == preparedNEListItems.OppIP)
+                        {
+                            // If NE list and Rmon Opposite match!
+                            if (rmonTheSelected.OppPort == preparedNEListItems.OppPort)
+                            {
+                                preparedNEListItems.IsMatch = true;
+                                preparedNEListItems.GroupMember = rmonTheSelected.GroupMember;
+                            }
+                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
+                            {
+                                if (findOppositeIpDetails != null)
+                                {
+                                    if (findOppositeIpDetails.GroupMember.Contains(preparedNEListItems.OppPort))
+                                        preparedNEListItems.IsMatch = true;
+                                }
+                            }
+                            else if (!String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
+                            {
+                                preparedNEListItems.Status = "Issue, (Only NE list has opposite Info)";
+                            }
+                            else if (String.IsNullOrWhiteSpace(preparedNEListItems.OppPort) && !String.IsNullOrWhiteSpace(rmonTheSelected.OppPort))
+                            {
+                                preparedNEListItems.Status = "Issue, (Only Rmon has Opposite info)";
+                            }
+                        }
+                        else if (String.IsNullOrWhiteSpace(rmonTheSelected.OppIP))
+                        {
+                            preparedNEListItems.Status = "Issue, (Rmon has No Opposite IP)";
+                        }
+
+                        if (preparedNEListItems.IsMatch == true && preparedNEListItems.HasRmon == true)
+                        {
+                            preparedNEListItems.Status = "Ok";
+                        }
+                    }
+                }
+                else
+                {
+                    if (preparedNEListItems.HasRmon == false && String.IsNullOrWhiteSpace(preparedNEListItems.OppPort))
+                    {
+                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon and Opposite Link)";
+                    }
+
+                    else if (preparedNEListItems.HasRmon == false)
+                        preparedNEListItems.Status = "Issue, (Does'nt have Rmon)";
+                }
+            }
+            PrepareListForUniqueMatchInOpposite();
+        }
+        #endregion
+
         #region tools
         private bool inBounds(int index, string[] array)
         {
@@ -1214,7 +1307,16 @@ namespace LogAnalyzerV2.Services
             }
             else { return -1; }
         }
-
+        private string RemoveBetween(string s, char begin, char end)
+        {
+            Regex regex = new Regex(string.Format("\\{0}.*?\\{1}", begin, end));
+            return regex.Replace(s, string.Empty);
+        }
+        private bool IsIndexExist(int index, int length)
+        {
+            if (index < length) { return true; }
+            else { return false; }
+        }
         #endregion
 
         #region LogAnalyzer Section
@@ -1344,7 +1446,7 @@ namespace LogAnalyzerV2.Services
                                 oneLine["Started_0"] = "*";
                                 oneLine["Completed_0"] = "*";
                                 oneLine["Duration_0"] = "*";
-                                oneLine["Date_"+ (j + 1)] = "*";
+                                oneLine["Date_" + (j + 1)] = "*";
                                 oneLine["Started_" + (j + 1)] = "*";
                                 oneLine["Completed_" + (j + 1)] = "*";
                                 oneLine["Duration_" + (j + 1)] = "*";
@@ -1884,5 +1986,221 @@ namespace LogAnalyzerV2.Services
             }
         }
         #endregion
+
+        #region Historical / Actual FTP Duration operation
+        private void FTPActualCollectionDuration(string type, string[] line)
+        {
+            // This code block works when data collection starts.
+            if (line[5].Contains("Starting..."))
+            {
+                try
+                {
+                    var started = line[3];
+                    var ip = line[5].Split(':')[3];
+                    ip = RemoveBetween(ip, ']', '"');
+
+                    if (!String.IsNullOrEmpty(started) && !String.IsNullOrEmpty(ip))
+                        timeTable.Add(new TimeTable { Ip = ip, Date = DateTime.Parse(line[2]), Started = DateTime.Parse(started), Type = type });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            // This code block activated if VAF failed to get files via FTP
+            if (line[5].Contains("0xFFFC-0401:15"))
+            {
+                try
+                {
+                    var updateLine = line;
+                    var pmonDataSavingTime = updateLine[3];
+                    var ip = updateLine[1].Split(':')[6];
+
+                    var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue);
+                    if (value != null)
+                    {
+                        value.RMON = "False";
+                        value.PMON = "False";
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            // This code block works when data collected properly.
+            if (line[5].Contains("PMON data Saving"))
+            {
+                try
+                {
+                    var updateLine = line;
+                    var pmonDataSavingTime = updateLine[3];
+                    var ip = updateLine[5].Split(':')[2];
+                    ip = ip.Split(' ')[4];
+                    ip = Regex.Replace(ip, "[@,\\\";'\\\\' ']", string.Empty);
+
+                    var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue);
+                    if (value != null)
+                    {
+                        value.PMON = "True";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            // This code block works when data collected properly.
+            if (line[5].Contains("RMON data Saving"))
+            {
+                try
+                {
+                    var updateLine = line;
+                    var rmonDataSavingTime = updateLine[3];
+                    var ip = updateLine[5].Split(':')[2];
+                    ip = ip.Split(' ')[4];
+                    ip = Regex.Replace(ip, "[@,\\\";'\\\\' ']", string.Empty);
+
+                    var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue);
+                    if (value != null)
+                    {
+                        value.RMON = "True";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
+            // This code block works when data collectin process completed for an NE.
+            if (line[5].Contains("Saving completed. NE:"))
+            {
+                try
+                {
+                    var updateLine = line;
+                    var completed = updateLine[3];
+                    var ip = updateLine[5].Split(':')[3];
+                    ip = Regex.Replace(ip, "[@,\\\";'\\\\' ']", string.Empty);
+
+                    var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue);
+                    if (value != null)
+                    {
+                        value.Completed = DateTime.Parse(completed);
+                        value.Duration = value.Completed.Subtract(value.Started);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+        private void FTPHistoricalCollectionDuration(string[] line)
+        {
+            //Önemli bir özellik başka yerlerde kullanılabilir.
+            string type = "";
+            if (IsIndexExist(4, line[1].Split('>').Length))
+            {
+                type = line[1].Split('>')[4].Split(':')[0];
+                try
+                {
+                    if (line[5].Contains("[GetFileS/FTP]"))
+                    {
+                        if (!String.IsNullOrEmpty(line[5]) && line[5].Contains("Connecting FTP"))
+                        {
+                            var splittedString = line[5].Split(' ').Last();
+
+                            // This is considered as starting point.
+                            if (splittedString.Contains("FTP"))
+                            {
+                                var ip = line[5].Split(' ')[5];
+                                var date = line[2];
+                                var started = line[3];
+
+                                if (timeTable.Any(x => x.Ip == ip && x.Type == type && x.Started == DateTime.Parse(started)) == false)
+                                {
+                                    timeTable.Add(new TimeTable { Ip = ip, Date = DateTime.Parse(line[2]), Started = DateTime.Parse(started), Type = type });
+                                }
+                            }
+                        }
+
+                        if (!String.IsNullOrEmpty(line[5]) && line[5].Contains("files can be downloaded"))
+                        {
+                            //fileCount = line[5].Split(' ')[6];
+                            //fileCount = fileCount + " files can be downloaded";
+
+                            var downloadDatatype = line[1].Split('>')[4].Split(':')[0];
+                            var ip = line[5].Split(' ')[5];
+                            var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue && d.Type == type);
+
+                            if (value != null)
+                            {
+                                value.FileCount = line[5].Split(' ')[6] + " files can be downloaded";
+                            }
+                        }
+
+                        else if (!String.IsNullOrEmpty(line[5]) && line[5].Split(' ').Length == 7)
+                        {
+                            if (line[5].Contains("(completed)") || line[5].Contains("0xA30B:"))
+                            {
+                                var ip = line[5].Split(' ')[5];
+                                var completed = line[3];
+
+                                var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue && d.Type == type);
+                                if (value != null)
+                                {
+                                    value.Completed = DateTime.Parse(completed);
+
+                                    if (type == "PMONCollect")
+                                    {
+                                        value.PMON = "True";
+                                    }
+                                    else if (type == "RMONCollect")
+                                    {
+                                        value.RMON = "True";
+                                    }
+                                    value.Duration = value.Completed.Subtract(value.Started);
+                                }
+                            }
+                        }
+                    }
+
+                    else if (line[5].Contains("0xA30B:"))
+                    {
+                        var ip = line[1].Split('>')[4].Split(':').Last();
+                        var completed = line[3];
+
+                        var value = timeTable.FirstOrDefault(d => d.Ip == ip && d.Completed == DateTime.MinValue && d.Type == type);
+                        if (value != null)
+                        {
+                            value.Completed = DateTime.Parse(completed);
+
+                            if (type == "PMONCollect")
+                            {
+                                value.PMON = "False";
+                            }
+                            else if (type == "RMONCollect")
+                            {
+                                value.RMON = "False";
+                            }
+                            value.Duration = value.Completed.Subtract(value.Started);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Message: ", ex.Message);
+                }
+            }
+
+        }
+        #endregion
+
+        
     }
 }

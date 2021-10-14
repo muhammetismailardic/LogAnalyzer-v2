@@ -3,19 +3,10 @@ using LogAnalyzerV2.Models;
 using LogAnalyzerV2.Services;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LogAnalyzerV2
 {
@@ -25,15 +16,15 @@ namespace LogAnalyzerV2
     public partial class MainWindow : Window
     {
         private BGWorker bgWorker;
-        private OppositeInformationWindow oppositeInformation;
-        
+        //private OppositeInformationWindow oppositeInformation;
+
         private List<string> cmbSessionList;
         private string serviceIp;
 
         public MainWindow()
         {
             InitializeComponent();
-            bgWorker = new BGWorker(this, oppositeInformation);
+            bgWorker = new BGWorker(this, null, null);
         }
         private void btnUploadFiles_Click(object sender, RoutedEventArgs e)
         {
@@ -619,7 +610,9 @@ namespace LogAnalyzerV2
             }
             else
             {
-                MessageBox.Show("Nothing to Export");
+                MessageBox.Show("Nothing to Export",
+                   "Log Analyzer", MessageBoxButton.OK,
+                   MessageBoxImage.Information);
             }
         }
         private void btnExpDailyCollectionResults_Click(object sender, RoutedEventArgs e)
@@ -628,18 +621,36 @@ namespace LogAnalyzerV2
             {
                 var loc = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\DailySummaryResult " + DateTime.Now.ToString("MM/dd/yyyy") + ".xlsx";
                 grdDailyColReportSummary.ExportToXlsx(loc);
-                MessageBox.Show("The list has been generated to Desktop.");
+                MessageBox.Show("The list has been generated to Desktop.",
+                    "Log Analyzer Informational", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
             else
             {
-                MessageBox.Show("Nothing to Export");
+                MessageBox.Show("Nothing to Export",
+                    "Log Analyzer", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
-
         private void Onclick_CapacityUtilization(object sender, RoutedEventArgs e)
         {
             CapacityUtilization capacityUtilization = new CapacityUtilization();
             capacityUtilization.ShowDialog();
+        }
+        private void NEFtpDuration_Click(object sender, RoutedEventArgs e)
+        {
+            NEFtpDuration NEFtpDuration = new NEFtpDuration();
+
+            NEFtpDuration.grdNEFtpDuration.ItemsSource = null;
+            NEFtpDuration.ShowDialog();
+        }
+
+        private void requiredData_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Please Insert Logs from VAF Server and Related Agents to see complete collection status!",
+                "Log Analyzer Informational",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
     }
 }

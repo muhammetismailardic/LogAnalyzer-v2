@@ -152,8 +152,6 @@ C:\Projects\LogAnalyzerV2\bin\Debug\es\DevExpress.Xpo.v19.2.resources.dll
 C:\Projects\LogAnalyzerV2\bin\Debug\ja\DevExpress.Xpo.v19.2.resources.dll
 C:\Projects\LogAnalyzerV2\bin\Debug\ru\DevExpress.Xpo.v19.2.resources.dll
 C:\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csprojAssemblyReference.cache
-D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016Colorful.v19.2.dll
-D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.VS2010.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\LogAnalyzerV2.exe.config
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\LogAnalyzerV2.exe.manifest
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\LogAnalyzerV2.application
@@ -197,6 +195,7 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2013
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2013LightGray.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016Black.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016BlackSE.v19.2.dll
+D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016Colorful.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016ColorfulSE.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016DarkGraySE.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2016White.v19.2.dll
@@ -208,6 +207,7 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2019
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Office2019White.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.Seven.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.TouchlineDark.v19.2.dll
+D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.VS2010.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.VS2017Blue.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.VS2017Dark.v19.2.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\DevExpress.Xpf.Themes.VS2017Light.v19.2.dll
@@ -304,12 +304,14 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\ja\DevExpress.Xpo.v19.2.resource
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\ru\DevExpress.Xpo.v19.2.resources.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\CapacityUtilization.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\MainWindow.g.cs
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\NEFtpDuration.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\OppositeInformationWindow.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\App.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2_MarkupCompile.cache
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2_MarkupCompile.lref
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\CapacityUtilization.baml
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\MainWindow.baml
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\NEFtpDuration.baml
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\OppositeInformationWindow.baml
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.g.resources
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.Properties.Resources.resources
@@ -321,3 +323,4 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.application
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.CopyComplete
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.exe
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.pdb
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.AssemblyReference.cache

@@ -13,6 +13,7 @@
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
         <dx:SimpleButton x:Name="btnExpOppList" Grid.Row="0" Content="Export" Width="85" Height="25" HorizontalAlignment="Left" Margin="0,0,5,0" Click="btnExpOppList_Click" Glyph="{dx:DXImage SvgImages/Export/ExportFile.svg}"/>
+        <Label Grid.Row="0" x:Name="requiredData" Content="Click here to check required items." HorizontalAlignment="Left" Margin="90,0,0,0" MouseDown="requiredData_MouseDown"/>
         <dxg:GridControl x:Name="grdMissingOppList" Grid.Row="1">
             <dxg:GridControl.Bands>
                 <dxg:GridControlBand Header="Result">

@@ -1530,14 +1530,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="LogAnalyzerV2.exe" size="108544">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="LogAnalyzerV2.exe" size="122880">
       <assemblyIdentity name="LogAnalyzerV2" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>IcBFuZyizntXPhdLVC2YcAlQc6dXa+1xTYm9FQDSvFk=</dsig:DigestValue>
+        <dsig:DigestValue>M33QpI9CB8wbcatPtqOYHwxNK+oy2sFsFpvpl0wOQ7A=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

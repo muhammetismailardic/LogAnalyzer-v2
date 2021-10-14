@@ -155,7 +155,11 @@
     <Compile Include="Models\RmonItems.cs" />
     <Compile Include="Models\ServerAgentCollection.cs" />
     <Compile Include="Models\ServiceSession.cs" />
+    <Compile Include="Models\TimeTable.cs" />
     <Compile Include="Models\TransferItems.cs" />
+    <Compile Include="NEFtpDuration.xaml.cs">
+      <DependentUpon>NEFtpDuration.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OppositeInformationWindow.xaml.cs">
       <DependentUpon>OppositeInformationWindow.xaml</DependentUpon>
     </Compile>
@@ -177,6 +181,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="NEFtpDuration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OppositeInformationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

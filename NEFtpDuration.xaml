@@ -1,0 +1,44 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LogAnalyzerV2" xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+        xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" x:Class="LogAnalyzerV2.NEFtpDuration"
+        mc:Ignorable="d"
+        Title="NEFtpDuration" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="35" />
+        </Grid.RowDefinitions>
+        <dx:SimpleButton x:Name="btnExpFtpDurationList" Grid.Row="0" Content="Export" Width="85" Height="25" HorizontalAlignment="Left" Click="btnExpFtpDurationList_Click" Glyph="{dx:DXImage SvgImages/Export/ExportFile.svg}"/>
+        <Label Grid.Row="0" x:Name="requiredData" Content="Click here to check required items." HorizontalAlignment="Left" Margin="90,0,0,0" MouseDown="requiredData_MouseDown"/>
+        <dxg:GridControl x:Name="grdNEFtpDuration" Grid.Row="1" Grid.ColumnSpan="2">
+            <dxg:GridControl.View>
+                <dxg:TableView x:Name="expGrdNEFtpDuration"/>
+            </dxg:GridControl.View>
+            <dxg:GridColumn FieldName="Date"/>
+            <dxg:GridColumn FieldName="Type"/>
+            <dxg:GridColumn FieldName="Ip"/>
+            <dxg:GridColumn FieldName="Started">
+                <dxg:GridColumn.EditSettings>
+                    <dxe:DateEditSettings Mask="T" MaskUseAsDisplayFormat="True" />
+                </dxg:GridColumn.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn FieldName="Completed">
+                <dxg:GridColumn.EditSettings>
+                    <dxe:DateEditSettings Mask="T" MaskUseAsDisplayFormat="True" />
+                </dxg:GridColumn.EditSettings>
+            </dxg:GridColumn>
+            <dxg:GridColumn FieldName="Duration"/>
+            <dxg:GridColumn FieldName="PMON"/>
+            <dxg:GridColumn FieldName="RMON"/>
+            <dxg:GridColumn FieldName="FileCount"/>
+        </dxg:GridControl>
+        <Button x:Name="btnCheckFTPDuration" Grid.Row="2" Content="Calculate FTP Duration" Width="150" Height="25" HorizontalAlignment="Right" Margin="0,5,3,5" Click="btnCheckFTPDuration_Click" Grid.Column="1" />
+        <ProgressBar x:Name="ftpDurationProgressBar" Grid.Row="2" Width="200" Height="20" HorizontalAlignment="Left" Margin="15,8,0,7" Grid.ColumnSpan="2" />
+        <Label x:Name="lblFtpDurationPercentage" Grid.Row="2" Width="150" Height="22" Margin="222,8,0,5" HorizontalAlignment="Left"/>
+    </Grid>
+</Window>

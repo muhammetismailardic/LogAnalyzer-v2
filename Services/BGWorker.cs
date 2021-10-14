@@ -12,11 +12,13 @@ namespace LogAnalyzerV2.Services
         public BackgroundWorker worker;
         private MainWindow _mainWindow;
         private OppositeInformationWindow _oppositeInformationWindow;
+        private NEFtpDuration _NEFtpDuration;
 
-        public BGWorker(MainWindow mainWindow, OppositeInformationWindow oppositeInformationWindow)
+        public BGWorker(MainWindow mainWindow, OppositeInformationWindow oppositeInformationWindow, NEFtpDuration NEFtpDuration)
         {
             _mainWindow = mainWindow;
             _oppositeInformationWindow = oppositeInformationWindow;
+            _NEFtpDuration = NEFtpDuration;
 
             worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
@@ -24,6 +26,18 @@ namespace LogAnalyzerV2.Services
             worker.ProgressChanged += worker_ProgressChanged;
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
         }
+
+        //public BGWorker(MainWindow mainWindow, NEFtpDuration NEFtpDuration)
+        //{
+        //    _mainWindow = mainWindow;
+        //    _NEFtpDuration = NEFtpDuration;
+
+        //    worker = new BackgroundWorker();
+        //    worker.WorkerReportsProgress = true;
+        //    worker.DoWork += worker_DoWork;
+        //    worker.ProgressChanged += worker_ProgressChanged;
+        //    worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+        //}
 
         public void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -37,6 +51,12 @@ namespace LogAnalyzerV2.Services
             {
                 _oppositeInformationWindow.MissingOppProgressBar.Value = e.ProgressPercentage;
                 _oppositeInformationWindow.lblMissingOppPercentage.Content = "%" + e.ProgressPercentage.ToString() + " Loading... Please wait!";
+            }
+
+            if (timeTable != null && timeTable.Count != 0)
+            {
+                _NEFtpDuration.ftpDurationProgressBar.Value = e.ProgressPercentage;
+                _NEFtpDuration.lblFtpDurationPercentage.Content = "%" + e.ProgressPercentage.ToString() + " Loading... Please wait!";
             }
         }
 
@@ -74,7 +94,11 @@ namespace LogAnalyzerV2.Services
                     var colSumList = scheduledJobsList.ToList();
 
                     // Populate Banners and child columns on Summay Tab
-                    _mainWindow.PopulateGrid(ServerAgentTable, colSumList);
+                    //If there server log the summary grid will be populated
+                    if (ServerAgentTable.Any(x => x.Type == true))
+                    {
+                        _mainWindow.PopulateGrid(ServerAgentTable, colSumList);
+                    }
 
                     // Insert Populated data to grid.
                     _mainWindow.grdDailyColReports.ItemsSource = PopulateDatas();
@@ -86,6 +110,13 @@ namespace LogAnalyzerV2.Services
                 _oppositeInformationWindow.MissingOppProgressBar.Value = 0;
                 _oppositeInformationWindow.lblMissingOppPercentage.Content = "Completed...";
                 _oppositeInformationWindow.grdMissingOppList.ItemsSource = missingOpposites.ToList();
+            }
+
+            if (timeTable != null && timeTable.Count != 0)
+            {
+                _NEFtpDuration.ftpDurationProgressBar.Value = 0;
+                _NEFtpDuration.lblFtpDurationPercentage.Content = "Completed...";
+                _NEFtpDuration.grdNEFtpDuration.ItemsSource = timeTable.ToList();
             }
         }
     }

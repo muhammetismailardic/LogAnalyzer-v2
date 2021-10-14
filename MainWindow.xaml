@@ -12,20 +12,22 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="35" />
         </Grid.RowDefinitions>
-
         <DockPanel Grid.Row="0">
             <Menu DockPanel.Dock="Top" Height="25">
                 <MenuItem Header="Tools">
                     <MenuItem Header="Calculate Capacity Utilization" Click="Onclick_CapacityUtilization" />
                     <MenuItem Header="FTP Issued NEs" />
-                    <MenuItem Header="Calculate NE FTP Duration" />
+                    <MenuItem Header="Calculate NE FTP Duration" Click="NEFtpDuration_Click" />
                     <MenuItem Header="Comma Counter" />
                     <MenuItem Header="Opposite Information" Click="Onclick_OppositeInformation" />
+                    <MenuItem Header="Log Filtering" />
                     <Separator />
                     <MenuItem Header="_Exit" />
                 </MenuItem>
+                <Label Grid.Row="0" x:Name="requiredData" Content="Click to Check Required Items" HorizontalAlignment="Right" Margin="0,0,0,0" MouseDown="requiredData_MouseDown"/>
             </Menu>
             <TextBox AcceptsReturn="True" />
+
         </DockPanel>
 
         <TabControl Grid.Row="1">
