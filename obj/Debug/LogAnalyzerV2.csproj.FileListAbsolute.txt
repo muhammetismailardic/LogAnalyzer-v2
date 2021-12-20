@@ -302,6 +302,7 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\de\DevExpress.Xpo.v19.2.resource
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\es\DevExpress.Xpo.v19.2.resources.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\ja\DevExpress.Xpo.v19.2.resources.dll
 D:\Yedek\Benim\Projects\LogAnalyzerV2\bin\Debug\ru\DevExpress.Xpo.v19.2.resources.dll
+D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.AssemblyReference.cache
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\CapacityUtilization.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\MainWindow.g.cs
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\NEFtpDuration.g.cs
@@ -323,4 +324,3 @@ D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.application
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.CopyComplete
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.exe
 D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.pdb
-D:\Yedek\Benim\Projects\LogAnalyzerV2\obj\Debug\LogAnalyzerV2.csproj.AssemblyReference.cache
